@@ -32,15 +32,10 @@ object Utils {
 
 object App {
 
-  def main(rawArgs: Array[String]) {
-    val ui = TextApp.top
-    ui.visible = true
-
-  /*    
-    
+  def main(rawArgs: Array[String]) {  
     val args = ReadArgs(rawArgs)
-    val oscClient = OscClient(args.port)
-    val wins = List(Window(Some("test"), None, XYPadRange((0.25f, 0.5f), (0.1f, 0.4f), Color.BLUE){ (a, b) => println(s"${a}, ${b}")} ))  // Convert.readFile(oscClient, args.filename)
+    val oscClient = OscClientPool(List(OscClient(args.port)))
+    val wins = Convert.readFile(oscClient, args.filename)
 
     wins.zipWithIndex.foreach { case (window, ix) => { 
         val ui = new MainFrame { self => 
@@ -60,39 +55,7 @@ object App {
             }
         }
         ui.visible = true        
-    }}  
-    */
+    }}   
 
-    
-  }
-
-}
-
-object TextApp extends SimpleSwingApplication {
-
-  /**
-   * Main Window
-   */
-  def top = new MainFrame {
-    title = "TextFieldSample"
-    val input = IntDial(0, (-5, 5), Color.BLUE)  // TextInput(Some("init"), Color.RED)((x:String) => println(x))
-    contents = input
-    /*
-    val textfield:TextField = new TextField("Input")
-    val label:Label = new Label("Output")
-
-    contents= new BorderPanel (){
-      add(textfield, North)
-      add(label, South)
-    }
-
-    // must specify 'keys' member of TextField, but not textfield it self.
-    listenTo(textfield.keys)
-
-    reactions += {
-      case KeyPressed(_, Key.Enter, _, _) => label.text_=(textfield.text)
-    }
-    */
   }
 }
-

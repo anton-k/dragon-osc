@@ -66,40 +66,40 @@ case class Context(aliases: Map[String,Ui] = Map(), settings: Settings = Setting
 }
 
 // Window and tabs
-case class TabSym(name: String, body: UiDecl) extends Sym
+case class TabSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 // Layout
-case class HorSym(name: String, body: UiDecl) extends Sym
-case class VerSym(name: String, body: UiDecl) extends Sym
-case class SpaceSym(name: String, body: UiDecl) extends Sym
+case class HorSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class VerSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class SpaceSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 // Widgets
-case class LabelSym(name: String, body: UiDecl) extends Sym
-case class DialSym(name: String, body: UiDecl) extends Sym
-case class IntDialSym(name: String, body: UiDecl) extends Sym
-case class ButtonSym(name: String, body: UiDecl) extends Sym
-case class ToggleSym(name: String, body: UiDecl) extends Sym
-case class HFaderSym(name: String, body: UiDecl) extends Sym
-case class VFaderSym(name: String, body: UiDecl) extends Sym
-case class MultiToggleSym(name: String, body: UiDecl) extends Sym
-case class XYPadSym(name: String, body: UiDecl) extends Sym
-case class HCheckSym(name: String, body: UiDecl) extends Sym
-case class VCheckSym(name: String, body: UiDecl) extends Sym
+case class LabelSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class DialSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class IntDialSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class ButtonSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class ToggleSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class HFaderSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class VFaderSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class MultiToggleSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class XYPadSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class HCheckSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class VCheckSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
-case class HFaderRangeSym(name: String, body: UiDecl) extends Sym
-case class VFaderRangeSym(name: String, body: UiDecl) extends Sym
-case class XYPadRangeSym(name: String, body: UiDecl) extends Sym
+case class HFaderRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class VFaderRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class XYPadRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
-case class DropDownListSym(name: String, body: UiDecl) extends Sym
-case class TextInputSym(name: String, body: UiDecl) extends Sym
+case class DropDownListSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class TextInputSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 // Control
-case class AliasSym(name: String, body: UiDecl) extends Sym
-case class RefSym(name: String, body: UiDecl) extends Sym
-case class SetParamSym(name: String, body: UiDecl) extends Sym
+case class AliasSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class RefSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class SetParamSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 
-case class WindowSym(name: String, body: UiDecl) extends Sym
+case class WindowSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 object WindowSym {
     def unapply(s: Sym): Option[(String, Option[(Int, Int)], UiDecl)] = 
@@ -319,6 +319,8 @@ object TextInputSym {
 }
 
 trait Ui
+
+case class WithId(id: String, ui: Ui) extends Ui
 case class Tab(items: List[(String, Ui)]) extends Ui
 case class Hor(items: List[Ui]) extends Ui
 case class Ver(items: List[Ui]) extends Ui
@@ -439,6 +441,12 @@ object ReadUI {
             else Some(onVer)
     }
 
+    def wrapId(id: Option[String], ui: State[Context,Option[Ui]]) = 
+        ui.map(x => id match {
+            case None => x
+            case Some(name) => x.map(y => WithId(name, y))
+        })
+
     def setParam(setter: SetParam) = State.modify[Context](ctx => ctx.setParam(setter))
 
     def addAlias(name: String, body: Ui): State[Context,Unit] = 
@@ -448,7 +456,7 @@ object ReadUI {
 
     def readUi(x: UiDecl): State[Context, Option[Ui]] = x match {
         case UiList(items) => readListUi(Root, items)
-        case UiSym(sym) => sym match {
+        case UiSym(sym) => wrapId(sym.id, sym match {
             case HorSym(xs) => State.modify((x: Context) => x.setHor).next(readListUi(Hor, xs))
             case VerSym(xs) => State.modify((x: Context) => x.setVer).next(readListUi(Ver, xs))
             case SpaceSym(n) => withOrient(HSpace(n), VSpace(n))
@@ -489,7 +497,7 @@ object ReadUI {
             case RefSym(name, args) => loadAlias(name)           
 
             case _ => none                        
-        }
+        })
         case UiString(name) => loadAlias(name)
     }
 }

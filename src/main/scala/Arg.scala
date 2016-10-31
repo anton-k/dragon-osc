@@ -67,8 +67,15 @@ class UiSym(val obj: Object) extends UiDecl
 
 object UiSym {
     def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>
-        val (name, obj) = x.toList.head        
-        Sym(name, UiDecl(obj))
+        val (name, obj) = x.toList.head
+        val (widgetName, id) = splitId(name)
+        Sym(widgetName, id, UiDecl(obj))
+    }
+
+    private def splitId(name: String) = {
+        val ar = name.split("#")
+        if (ar.length < 2) (name, None)
+        else (ar(0), Some(ar(1)))
     }
 }
 
@@ -117,6 +124,7 @@ object UiBoolean {
 
 trait Sym {
     val name: String
+    val id: Option[String]
     val body: UiDecl
 
     def isName(str: String) = 
@@ -188,8 +196,9 @@ trait Sym {
 }
 
 object Sym {
-    def apply(n: String, b: UiDecl): Sym = new Sym {
+    def apply(n: String, i: Option[String], b: UiDecl): Sym = new Sym {
         val name = n
+        val id = i
         val body = b
     }    
 }
