@@ -1,0 +1,74 @@
+- window:
+    title: win1
+    size: [350, 350]
+    body:
+      - tabs:
+        - tab1:
+          - hor:
+              - dial: [/x1]
+              - dial: [/x2]
+
+        - tab2:        
+          - set-color olive:          
+            - ver:  
+              - hor:
+                  - label: [amp1, olive]
+                  - hfader: [0.1, /amp1]
+              - hor:
+                  - label: [amp2, olive]
+                  - hfader: [0.3, /amp2]
+              - hor:
+                  - label: [amp3, olive]
+                  - hfader: [0.4, /amp3]
+              - label: notes
+              - let notes:
+                - hor:
+                    - toggle: [true, orange, c, /tap3]
+                    - toggle: [true, orange, d, /tap4]
+                    - toggle: [true, orange, e, /tap4]
+                    - toggle: [true, orange, f, /tap5]
+                    - toggle: [true, orange, g, /tap6]
+                    - toggle: [true, orange, a, /tap1]
+                    - toggle: [true, orange, h, /tap2]                    
+              - notes
+              - notes
+
+- window:
+    title: win2
+    size: [450, 450]
+    body:
+      - ver:  
+        - hor:
+            - let q:                  
+                - ver:    
+                  - dial: [red, /amp]
+                  - dial: [orange, /cps]
+              
+            - q 
+            - q  
+            - space: 10     
+            - ver:
+              - vfader: [0.1, /amp1, -1.0, 1.0]
+              - label: ["1"]
+            - ver:              
+              - vfader: [0.1, /amp2]
+              - label: ["2"]
+            - ver:
+              - vfader: [0.1, /amp3]
+              - label: "3"
+        
+        - space: 20  
+        - set-color olive:
+          - set-init-float 0.85:
+            - hor: 
+                - button: [/but1]        
+                - space: 30   
+                - toggle: [false, orange, /tog1]
+                - ver:      
+                    - hfader: [/amp]
+                    - hfader: [/amp]
+        - button: [red, start, /start]
+
+        - multi-toggle: [4, 3, [0, 1, 3, 4], [a,b,c,d,f, g, d, f], olive, /mtog]
+
+        - xy-pad: [orange, /pad-1, -5, 5, 100.0, 0.0]
