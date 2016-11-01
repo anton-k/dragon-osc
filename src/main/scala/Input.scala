@@ -1,5 +1,6 @@
 import scala.swing.{Component}
 import scala.swing.audio.ui._
+import scala.audio.osc.{MessageCodec, OscServer}
 
 package dragon.osc {
     package object input {
@@ -81,6 +82,46 @@ case class InputBase(
 
     private def on[A <: SetWidget[B], B](m: IdMap[A], id: String, value: B, fireCallback: Boolean) = m.get(id).foreach(_.set(value, fireCallback))
     private def addIdMap[A](m: IdMap[A], id: String, a: A) = m + (id -> a)
+}
+
+
+object SetupOscServer {
+    def addListeners(server: OscServer, inputBase: InputBase) {
+        setValue("dial",   DialSet,   server, inputBase)
+        setValue("hfader", HFaderSet, server, inputBase)
+        setValue("vfader", VFaderSet, server, inputBase)        
+        setButton(server, inputBase)
+        setValue("toggle", ToggleSet, server, inputBase)        
+        setValue("multi-toggle", MultiToggleSet, server, inputBase)
+        setValue("xy-pad", XYPadSet, server, inputBase)
+        setValue("int-dial", IntDialSet, server, inputBase)
+        setValue("hfader-range", HFaderRangeSet, server, inputBase)
+        setValue("vfader-range", VFaderRangeSet, server, inputBase)
+        setValue("xy-pad-range", XYPadRangeSet, server, inputBase)
+        setValue("drop-down-list", DropDownListSet, server, inputBase)
+        setValue("text-input", TextInputSet, server, inputBase)
+    }
+
+    private def setValue[A](name: String, mkInput: (String,A,Boolean) => Input, server: OscServer, inputBase: InputBase)(implicit codec: MessageCodec[A]) = {
+        def go(fireName: String, fireValue: Boolean) = {
+            server.listen[(String,A)](s"/${fireName}/${name}") { msg => {
+                val (id, value) = msg
+                inputBase.act(mkInput(id, value, fireValue))
+            }}(MessageCodec.tuple2[String,A](MessageCodec.stringOscMessageCodec, codec))
+        }
+        go("hot", true)
+        go("cold", false)        
+    }
+
+    private def setButton(server: OscServer, inputBase: InputBase) {
+        def go(fireName: String, fireValue: Boolean) = {
+            server.listen[String](s"${fireName}/button") { id => 
+                inputBase.act(ButtonSet(id, fireValue))
+            }
+        }
+        go("hot", true)
+        go("cold", false)
+    }
 }
 
 }

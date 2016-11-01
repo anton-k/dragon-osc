@@ -1,7 +1,3 @@
-// scalaSource in Compile := baseDirectory.value / "src"
-// scalaSource in Runtime := baseDirectory.value / "src"
-// scalaSource in Test := baseDirectory.value / "src"
-
 mainClass in (Compile,run) := Some("App")
 
 //scalaVersion       := "2.10.5"
@@ -9,7 +5,8 @@ mainClass in (Compile,run) := Some("App")
 
 libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-swing" % "2.10+"
-    , "org.yaml" % "snakeyaml" % "1.16" )
+    , "org.yaml" % "snakeyaml" % "1.16" 
+    , "com.github.scopt" %% "scopt" % "3.5.0")
 
 
 lazy val commonSettings = Seq(
