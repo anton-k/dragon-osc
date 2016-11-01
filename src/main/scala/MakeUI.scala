@@ -8,6 +8,8 @@ import scala.swing.audio.ui._
 
 import scala.audio.osc._
 
+import dragon.osc.input._
+
 package scala.swing.audio.convert {    
 
     case class Window(title: Option[String], size: Option[(Int, Int)], content: Component)
@@ -17,16 +19,18 @@ package scala.swing.audio.convert {
         def echo[A](msg: String, oscAddress: Arg.OscAddress, value: A) =
             println(s"${msg}${oscAddress.address} ${value}")
 
-        def readFile(osc: OscClientPool, filename: String) =  P.ReadUI.readUi(Arg.UiDecl.loadFile(filename)).eval(P.Context()).map(convertTopLevel(osc)).get
+        def readFile(osc: OscClientPool, filename: String) = P.ReadUI.readUi(Arg.UiDecl.loadFile(filename)).eval(P.Context()).map(x => convertTopLevel(osc)(x).run(InputBase())).get
 
         def mkTabbed(osc: OscClientPool)(body: List[(String, P.Ui)]) = 
-            new TabbedPane {
-                import TabbedPane._
-                body.foreach { case (name, content) => 
-                    pages += new Page(name, convert(osc)(content))
+            mapM(body){{ case (name, content) => convert(osc)(content).map(ui => (name, ui)) }}.map { body =>
+                new TabbedPane {
+                    import TabbedPane._
+                    body.foreach { case (name, ui) => 
+                        pages += new Page(name, ui)
+                    }
                 }
-        }
-
+            }
+        
 
         def genBox(orient: Orientation.Value)(items: List[Component])(implicit code: Unit = {}) = new BoxPanel(orient) {
             items.foreach( x => {contents += x; code} )
@@ -93,7 +97,7 @@ package scala.swing.audio.convert {
         def mkDropDownList(osc: OscClientPool, init: Int, names: List[String], oscVal: Arg.OscInt) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[Int](addr)
-            DropDown(init, names) { n =>                 
+            DropDownList(init, names) { n =>                 
                 echo("DropDownList", addr, n)
                 chn.send(n)
             }
@@ -120,37 +124,44 @@ package scala.swing.audio.convert {
             }
         }
 
-        def convertTopLevel(osc: OscClientPool)(x: P.Ui): List[Window] = x match {
-            case P.Window(title, size, items) => List(Window(Some(title), size, convert(osc)(items)))
-            case P.Root(xs) => xs.map(convertTopLevel(osc)).flatten
-            case _ => List(Window(None, None, convert(osc)(x)))
+        def convertTopLevel(osc: OscClientPool)(x: P.Ui): State[InputBase,List[Window]] = x match {
+            case P.Window(title, size, items) => (convert(osc)(items)).map { ui => List(Window(Some(title), size, ui)) }
+            case P.Root(xs) => (State.mapM(xs) { convertTopLevel(osc) }).map(_.flatten)
+            case _ => (convert(osc)(x)).map { ui => List(Window(None, None, ui)) }
         }
 
-        def convert(osc: OscClientPool)(x: P.Ui): Component = x match {
-            case P.Root(xs) => hor(xs.map(convert(osc)))
-            case P.Hor(xs)  => hor(xs.map(convert(osc)))
-            case P.Ver(xs)  => ver(xs.map(convert(osc))) 
-            case P.VSpace(n) => Swing.VStrut(n)
-            case P.HSpace(n) => Swing.HStrut(n)
-            case P.HGlue => Swing.HGlue
-            case P.VGlue => Swing.VGlue
-            case P.Tab(xs)  => mkTabbed(osc)(xs)
+        def pure[A](a: A): State[InputBase,A] = State.pure[InputBase,A](a)
+
+        def mapM[A,B](as: List[A])(f: A => State[InputBase,B]): State[InputBase,List[B]] = State.mapM[InputBase,A,B](as)(f)
+
+        def convert(osc: OscClientPool)(x: P.Ui): State[InputBase,Component] = x match {
+            case P.WithId(id, widget) => convert(osc)(widget).flatMap(ui => State.modify[InputBase](_.addWidgetSet(id, ui)).next(State.pure(ui))) 
+            case P.Tab(xs)  => mkTabbed(osc)(xs)            
+            case P.Root(xs) => mapM(xs)(convert(osc)).map(uis => hor(uis))
+            case P.Hor(xs)  => mapM(xs)(convert(osc)).map(uis => hor(uis))
+            case P.Ver(xs)  => mapM(xs)(convert(osc)).map(uis => ver(uis))
             case P.Window(title, size, items) => convert(osc)(items)
-            
-            case P.Label(text, color) => Text(text, palette(color))
-            case P.Dial(init, color, oscVal)   => mkFloatValue("Dial", osc, init, color, oscVal, (init, color) => f => Dial(init, color)(f))
-            case P.HFader(init, color, oscVal) => mkFloatValue("HFader", osc, init, color, oscVal, (init, color) => f => HFader(init, color)(f))
-            case P.VFader(init, color, oscVal) => mkFloatValue("VFader", osc, init, color, oscVal, (init, color) => f => VFader(init, color)(f))
-            case P.Button(color, text, oscVal) => mkPushButton(osc, color, text, oscVal)
-            case P.Toggle(init, color, text, oscVal) => mkToggleButton(osc, init, color, text, oscVal)
-            case P.MultiToggle(size, init, texts, color, textColor, oscAddr) => mkMultiToggle(osc, size, init, texts, color, textColor, oscAddr)
-            case P.XYPad(init, color, oscVal) => mkXYPad(osc, init, color, oscVal)
-            case P.IntDial(init, range, color, oscVal) => mkIntDial(osc, init, range, color, oscVal)
-            case P.HFaderRange(init, color, oscVal) => mkFloatRangeValue("HFaderRange", osc, init, color, oscVal, (init, color) => f => HFaderRange(init, color)(f))
-            case P.VFaderRange(init, color, oscVal) => mkFloatRangeValue("VFaderRange", osc, init, color, oscVal, (init, color) => f => VFaderRange(init, color)(f))
-            case P.XYPadRange(initX, initY, color, oscVal) => mkXYPadRange(osc, initX, initY, color, oscVal)
-            case P.DropDownList(init, names, oscVal) => mkDropDownList(osc, init, names, oscVal)
-            case P.TextInput(init, color, oscVal) => mkTextInput(osc, init, color, oscVal)            
+
+            case simple => pure { simple match {                
+                case P.VSpace(n) => Swing.VStrut(n)
+                case P.HSpace(n) => Swing.HStrut(n)
+                case P.HGlue => Swing.HGlue
+                case P.VGlue => Swing.VGlue                
+                case P.Label(text, color) => Text(text, palette(color))
+                case P.Dial(init, color, oscVal)   => mkFloatValue("Dial", osc, init, color, oscVal, (init, color) => f => Dial(init, color)(f))
+                case P.HFader(init, color, oscVal) => mkFloatValue("HFader", osc, init, color, oscVal, (init, color) => f => HFader(init, color)(f))
+                case P.VFader(init, color, oscVal) => mkFloatValue("VFader", osc, init, color, oscVal, (init, color) => f => VFader(init, color)(f))
+                case P.Button(color, text, oscVal) => mkPushButton(osc, color, text, oscVal)
+                case P.Toggle(init, color, text, oscVal) => mkToggleButton(osc, init, color, text, oscVal)
+                case P.MultiToggle(size, init, texts, color, textColor, oscAddr) => mkMultiToggle(osc, size, init, texts, color, textColor, oscAddr)
+                case P.XYPad(init, color, oscVal) => mkXYPad(osc, init, color, oscVal)
+                case P.IntDial(init, range, color, oscVal) => mkIntDial(osc, init, range, color, oscVal)
+                case P.HFaderRange(init, color, oscVal) => mkFloatRangeValue("HFaderRange", osc, init, color, oscVal, (init, color) => f => HFaderRange(init, color)(f))
+                case P.VFaderRange(init, color, oscVal) => mkFloatRangeValue("VFaderRange", osc, init, color, oscVal, (init, color) => f => VFaderRange(init, color)(f))
+                case P.XYPadRange(initX, initY, color, oscVal) => mkXYPadRange(osc, initX, initY, color, oscVal)
+                case P.DropDownList(init, names, oscVal) => mkDropDownList(osc, init, names, oscVal)
+                case P.TextInput(init, color, oscVal) => mkTextInput(osc, init, color, oscVal)            
+            }}
         }
 
         def palette(colorName: String) = colorName match {
