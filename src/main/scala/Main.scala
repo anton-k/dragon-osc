@@ -30,16 +30,13 @@ object App {
     val oscClient = Osc.client(args.inPort)
     val (wins, inputBase) = Convert.readFile(oscClient, args.filename)
     val oscServer = Osc.server(args.outPort, inputBase) 
-    println("INPUT BASE:")
-    println(inputBase) 
 
     wins.zipWithIndex.foreach { case (window, ix) => { 
         val ui = new MainFrame { self => 
             title = window.title.getOrElse("dragon" + ix.toString)
             contents = window.content
 
-            window.size.foreach { case (width, height) => 
-                println(s"Set sizes ${width} ${height}")
+            window.size.foreach { case (width, height) =>                 
                 self.minimumSize = new Dimension(width, height)
             }
 

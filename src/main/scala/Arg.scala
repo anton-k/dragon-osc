@@ -4,6 +4,7 @@ import collection.JavaConverters._
 import collection.JavaConversions._ 
 import scala.util.Try
 import dragon.osc.const.Names
+import dragon.osc.act._
 
 
 package scala.swing.audio.parse {
@@ -22,6 +23,11 @@ object UiDecl {
 
 trait UiDecl {
     val obj: Object
+
+    def isList = this match {
+        case UiList(_) => true
+        case _ => false
+    }
 }
 
 class UiList(val obj: Object) extends UiDecl
@@ -66,8 +72,7 @@ object UiStringList {
 class UiSym(val obj: Object) extends UiDecl
 
 object UiSym {
-    def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>
-        println(x)
+    def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>        
         val (name, obj) = x.toList.head
         val (widgetName, id) = splitId(name)
         Sym(widgetName, id, UiDecl(obj))
@@ -87,6 +92,15 @@ class UiMap(val obj: Object) extends UiDecl
 object UiMap {
     def unapply(decl: UiDecl): Option[Map[String,UiDecl]] = Yaml.readMap(decl.obj).map { x =>
         x.map { case (name, x) => (name, UiDecl(x)) }
+    }
+}
+
+class UiAct(val obj: Object) extends UiDecl
+
+object UiAct {
+    def unapply(decl: UiDecl): Option[Act] = decl match {
+        case UiMap(m) => Act.fromMap(m)
+        case _        => None
     }
 }
 
@@ -128,7 +142,7 @@ object UiBoolean {
 trait Sym {
     val name: String
     val id: Option[String]
-    val body: UiDecl
+    val body: UiDecl    
 
     def isName(str: String) = 
         if (this.name == str)
@@ -272,6 +286,21 @@ object Arg {
         b <- mb
     } yield (a, b)
 
+    def many[A](ma: Arg[A]): Arg[List[A]] = Arg { new State[List[UiDecl],Option[List[A]]] {
+        def run(xs: List[UiDecl]) = {
+            val (a, rest) = ma.state.run(xs)
+            a match {
+                case None => (Some(Nil), xs)
+                case Some(x) => {
+                    val (as, rest2) = many(ma).state.run(rest)
+                    as match {
+                        case None => (Some(Nil), rest2)
+                        case Some(xs) => (Some(x :: xs), rest2)
+                    }
+                }
+            }
+        } 
+    }}
 
     
     def int: Arg[Int] = Arg{ xs => 

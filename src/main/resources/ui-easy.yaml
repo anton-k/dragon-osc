@@ -32,8 +32,14 @@
                     - toggle h: [true, orange, h, /tap2]                    
               - notes
               - notes
-        - tab3:
+        - songs:
           - vcheck: [0, 6, olive, [intro, bhopali, cosmonauts, yaman, fidel, charukeshi, swan], false, /song]
+            act 0:
+              - script: ["intro.txt"]
+            act 1:
+              - script: ["bhopali.txt"]
+            act 2: 
+              - script: ["yaman.txt"]
 - window:
     title: win2
     size: [450, 450]
@@ -62,9 +68,20 @@
         - set-color olive:
           - set-init-float 0.85:
             - hor: 
-                - button: [/but1]        
-                - space: 30   
+                - button: [/but1]
+                  act:
+                    - send: []
+                    - save: []
+                    - run:  []
+
+                - space: 30 
+
                 - toggle: [false, orange, /tog1]
+                  act true:
+                    - send: ["/amp", 324]
+                  act false:
+                    - send: ["/amp", 231]
+                    
                 - ver:      
                     - hfader: [/amp]
                     - hfader: [/amp]

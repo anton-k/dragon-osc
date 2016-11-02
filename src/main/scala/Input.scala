@@ -120,8 +120,8 @@ object SetupOscServer {
                 inputBase.act(mkInput(id, value, fireValue))
             }}(MessageCodec.tuple2[String,A](MessageCodec.stringOscMessageCodec, codec))
         }
-        go("hot", true)
-        go("cold", false)        
+        go(Names.hot, true)
+        go(Names.cold, false)        
     }
 
     private def setButton(server: OscServer, inputBase: InputBase) {
@@ -130,8 +130,8 @@ object SetupOscServer {
                 inputBase.act(ButtonSet(id, fireValue))
             }
         }
-        go("hot", true)
-        go("cold", false)
+        go(Names.hot, true)
+        go(Names.cold, false)
     }
 }
 

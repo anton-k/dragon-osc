@@ -25,4 +25,12 @@ object Names {
     val glue = "glue"
 
     val idSet = Set(dial, hfader, vfader, vcheck, hcheck, toggle, multiToggle, xyPad, intDial, hfaderRange, vfaderRange, xyPadRange, dropDownList, textInput, tabs, window)
+
+    val hot = "hot"        
+    val cold = "cold"
+
+    // action names
+    val send = "send"
+    val save = "save"
+    val run  = "run"
 }
