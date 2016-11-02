@@ -32,7 +32,8 @@
                     - toggle h: [true, orange, h, /tap2]                    
               - notes
               - notes
-
+        - tab3:
+          - vcheck: [0, 6, olive, [intro, bhopali, cosmonauts, yaman, fidel, charukeshi, swan], false, /song]
 - window:
     title: win2
     size: [450, 450]

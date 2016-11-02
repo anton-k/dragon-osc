@@ -125,6 +125,15 @@ package scala.swing.audio.convert {
             }
         }
 
+        def mkCheck[A](widgetName: String, osc: OscClientPool, init: Int, len: Int, color: String, texts: List[String], allowDeselect: Boolean, oscVal: Arg.OscInt, mk: (Int,Int,Color,List[String],Boolean) => (Int => Unit) => A) = {
+            val addr = oscVal.oscAddress
+            val chn = osc.channel[Int](addr)
+            mk(init, len, palette(color), texts, allowDeselect) { n =>
+                echo(widgetName, addr, n)
+                chn.send(n)
+            }
+        }
+
         def convertTopLevel(osc: OscClientPool)(x: P.Ui): State[InputBase,List[Window]] = x match {
             case P.Window(title, size, items) => (convert(osc)(items)).map { ui => List(Window(Some(title), size, ui)) }
             case P.Root(xs) => (State.mapM(xs) { convertTopLevel(osc) }).map(_.flatten)
@@ -156,6 +165,8 @@ package scala.swing.audio.convert {
                 case P.Toggle(init, color, text, oscVal) => mkToggleButton(osc, init, color, text, oscVal)
                 case P.MultiToggle(size, init, texts, color, textColor, oscAddr) => mkMultiToggle(osc, size, init, texts, color, textColor, oscAddr)
                 case P.XYPad(init, color, oscVal) => mkXYPad(osc, init, color, oscVal)
+                case P.VCheck(init, size, color, text, allowDeselect, oscVal) => mkCheck("VCheck", osc, init, size, color, text, allowDeselect, oscVal, (init, len, color, texts, allowDeselect) => f => VCheck(init, len, color, texts, allowDeselect)(f))
+                case P.HCheck(init, size, color, text, allowDeselect, oscVal) => mkCheck("HCheck", osc, init, size, color, text, allowDeselect, oscVal, (init, len, color, texts, allowDeselect) => f => HCheck(init, len, color, texts, allowDeselect)(f))
                 case P.IntDial(init, range, color, oscVal) => mkIntDial(osc, init, range, color, oscVal)
                 case P.HFaderRange(init, color, oscVal) => mkFloatRangeValue("HFaderRange", osc, init, color, oscVal, (init, color) => f => HFaderRange(init, color)(f))
                 case P.VFaderRange(init, color, oscVal) => mkFloatRangeValue("VFaderRange", osc, init, color, oscVal, (init, color) => f => VFaderRange(init, color)(f))
