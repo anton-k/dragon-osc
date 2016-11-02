@@ -23,13 +23,13 @@
               - label: notes
               - let notes:
                 - hor:
-                    - toggle: [true, orange, c, /tap3]
-                    - toggle: [true, orange, d, /tap4]
-                    - toggle: [true, orange, e, /tap4]
-                    - toggle: [true, orange, f, /tap5]
-                    - toggle: [true, orange, g, /tap6]
-                    - toggle: [true, orange, a, /tap1]
-                    - toggle: [true, orange, h, /tap2]                    
+                    - toggle c: [true, orange, c, /tap3]
+                    - toggle d: [true, orange, d, /tap4]
+                    - toggle e: [true, orange, e, /tap4]
+                    - toggle f: [true, orange, f, /tap5]
+                    - toggle g: [true, orange, g, /tap6]
+                    - toggle a : [true, orange, a, /tap1]
+                    - toggle h: [true, orange, h, /tap2]                    
               - notes
               - notes
 
@@ -48,13 +48,13 @@
             - q  
             - space: 10     
             - ver:
-              - vfader: [0.1, /amp1, -1.0, 1.0]
+              - vfader f1: [0.1, /amp1, -1.0, 1.0]
               - label: ["1"]
             - ver:              
-              - vfader: [0.1, /amp2]
+              - vfader f2: [0.1, /amp2]
               - label: ["2"]
             - ver:
-              - vfader: [0.1, /amp3]
+              - vfader f3: [0.1, /amp3]
               - label: "3"
         
         - space: 20  

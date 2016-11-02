@@ -15,6 +15,7 @@ import java.awt.Color
 import java.text.SimpleDateFormat
 import javax.swing.{Icon, ImageIcon}
 
+import dragon.osc.Osc
 import dragon.osc.input.SetupOscServer
 
 object Utils {
@@ -26,11 +27,11 @@ object App {
 
   def main(rawArgs: Array[String]) {  
     val args = ReadArgs(rawArgs)
-    val oscClient = OscClientPool(List(OscClient(args.inPort)))
-    val oscServer = OscServer(args.outPort)
-
+    val oscClient = Osc.client(args.inPort)
     val (wins, inputBase) = Convert.readFile(oscClient, args.filename)
-    SetupOscServer.addListeners(oscServer, inputBase)    
+    val oscServer = Osc.server(args.outPort, inputBase) 
+    println("INPUT BASE:")
+    println(inputBase) 
 
     wins.zipWithIndex.foreach { case (window, ix) => { 
         val ui = new MainFrame { self => 
@@ -46,7 +47,7 @@ object App {
                 println("Close now")
                 oscClient.close  
                 oscServer.close
-                Thread.sleep(10)          
+                Thread.sleep(1)          
                 System.exit(0)                
             }
         }

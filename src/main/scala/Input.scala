@@ -1,6 +1,7 @@
 import scala.swing.{Component}
 import scala.swing.audio.ui._
 import scala.audio.osc.{MessageCodec, OscServer}
+import dragon.osc.const.Names
 
 package dragon.osc {
     package object input {
@@ -21,6 +22,8 @@ case class TabSet(id: String, value: Int) extends Input
 case class DialSet(id: String, value: Float, fireCallback: Boolean) extends Input
 case class HFaderSet(id: String, value: Float, fireCallback: Boolean) extends Input
 case class VFaderSet(id: String, value: Float, fireCallback: Boolean) extends Input
+case class HCheckSet(id: String, value: Int, fireCallback: Boolean) extends Input
+case class VCheckSet(id: String, value: Int, fireCallback: Boolean) extends Input
 case class ButtonSet(id: String, fireCallback: Boolean) extends Input
 case class ToggleSet(id: String, value: Boolean, fireCallback: Boolean) extends Input
 case class MultiToggleSet(id: String, value: ((Int, Int), Boolean), fireCallback: Boolean) extends Input
@@ -39,6 +42,8 @@ case class InputBase(
     buttonSet:          IdMap[PushButton]       = emptyMap[PushButton],
     toggleSet:          IdMap[ToggleButton]     = emptyMap[ToggleButton],
     multiToggleSet:     IdMap[MultiToggle]      = emptyMap[MultiToggle],
+    hcheckSet:          IdMap[HCheck]           = emptyMap[HCheck],
+    vcheckSet:          IdMap[VCheck]           = emptyMap[VCheck],
     xyPadSet:           IdMap[XYPad]            = emptyMap[XYPad],
     intDialSet:         IdMap[IntDial]          = emptyMap[IntDial],
     hfaderRangeSet:     IdMap[HFaderRange]      = emptyMap[HFaderRange],
@@ -61,6 +66,8 @@ case class InputBase(
         case XYPadRangeSet(id, value, fireCallback)   => on(xyPadRangeSet, id, value, fireCallback)
         case DropDownListSet(id, value, fireCallback) => on(dropDownListSet, id, value, fireCallback)
         case TextInputSet(id, value, fireCallback)    => on(textInputSet, id, value, fireCallback)
+        case HCheckSet(id, value, fireCallback)       => on(hcheckSet, id, value, fireCallback)
+        case VCheckSet(id, value, fireCallback)       => on(vcheckSet, id, value, fireCallback)
     }
 
     def addWidgetSet[A](id: String, widget: Component) = widget match {
@@ -77,6 +84,9 @@ case class InputBase(
         case x: XYPadRange      => this.copy(xyPadRangeSet = addIdMap(xyPadRangeSet, id, x))
         case x: DropDownList    => this.copy(dropDownListSet = addIdMap(dropDownListSet, id, x))
         case x: TextInput       => this.copy(textInputSet = addIdMap(textInputSet, id, x))
+        case x: HCheck          => this.copy(hcheckSet   = addIdMap(hcheckSet, id, x))
+        case x: VCheck          => this.copy(vcheckSet   = addIdMap(vcheckSet, id, x))  
+
         case x                  => { println("Uknown widget"); this }
     }
 
@@ -84,22 +94,23 @@ case class InputBase(
     private def addIdMap[A](m: IdMap[A], id: String, a: A) = m + (id -> a)
 }
 
-
 object SetupOscServer {
     def addListeners(server: OscServer, inputBase: InputBase) {
-        setValue("dial",   DialSet,   server, inputBase)
-        setValue("hfader", HFaderSet, server, inputBase)
-        setValue("vfader", VFaderSet, server, inputBase)        
+        setValue(Names.dial,   DialSet,   server, inputBase)
+        setValue(Names.hfader, HFaderSet, server, inputBase)
+        setValue(Names.vfader, VFaderSet, server, inputBase)        
         setButton(server, inputBase)
-        setValue("toggle", ToggleSet, server, inputBase)        
-        setValue("multi-toggle", MultiToggleSet, server, inputBase)
-        setValue("xy-pad", XYPadSet, server, inputBase)
-        setValue("int-dial", IntDialSet, server, inputBase)
-        setValue("hfader-range", HFaderRangeSet, server, inputBase)
-        setValue("vfader-range", VFaderRangeSet, server, inputBase)
-        setValue("xy-pad-range", XYPadRangeSet, server, inputBase)
-        setValue("drop-down-list", DropDownListSet, server, inputBase)
-        setValue("text-input", TextInputSet, server, inputBase)
+        setValue(Names.toggle, ToggleSet, server, inputBase)        
+        setValue(Names.multiToggle, MultiToggleSet, server, inputBase)
+        setValue(Names.xyPad, XYPadSet, server, inputBase)
+        setValue(Names.intDial, IntDialSet, server, inputBase)
+        setValue(Names.hfaderRange, HFaderRangeSet, server, inputBase)
+        setValue(Names.vfaderRange, VFaderRangeSet, server, inputBase)
+        setValue(Names.xyPadRange, XYPadRangeSet, server, inputBase)
+        setValue(Names.dropDownList, DropDownListSet, server, inputBase)
+        setValue(Names.textInput, TextInputSet, server, inputBase)
+        setValue(Names.hcheck, HCheckSet, server, inputBase)
+        setValue(Names.vcheck, VCheckSet, server, inputBase)
     }
 
     private def setValue[A](name: String, mkInput: (String,A,Boolean) => Input, server: OscServer, inputBase: InputBase)(implicit codec: MessageCodec[A]) = {
@@ -115,7 +126,7 @@ object SetupOscServer {
 
     private def setButton(server: OscServer, inputBase: InputBase) {
         def go(fireName: String, fireValue: Boolean) = {
-            server.listen[String](s"${fireName}/button") { id => 
+            server.listen[String](s"${fireName}/${Names.button}") { id => 
                 inputBase.act(ButtonSet(id, fireValue))
             }
         }

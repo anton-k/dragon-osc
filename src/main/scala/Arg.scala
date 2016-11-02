@@ -3,7 +3,7 @@ import java.io.{FileInputStream, File}
 import collection.JavaConverters._
 import collection.JavaConversions._ 
 import scala.util.Try
-
+import dragon.osc.const.Names
 
 
 package scala.swing.audio.parse {
@@ -67,15 +67,18 @@ class UiSym(val obj: Object) extends UiDecl
 
 object UiSym {
     def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>
+        println(x)
         val (name, obj) = x.toList.head
         val (widgetName, id) = splitId(name)
         Sym(widgetName, id, UiDecl(obj))
     }
 
     private def splitId(name: String) = {
-        val ar = name.split("#")
+        val ar = name.split(" ").filter(_ != "")        
         if (ar.length < 2) (name, None)
-        else (ar(0), Some(ar(1)))
+        else 
+            if (Names.idSet.contains(ar(0))) (ar(0), Some(ar(1)))
+            else (name, None)
     }
 }
 

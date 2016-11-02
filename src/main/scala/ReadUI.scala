@@ -1,5 +1,6 @@
 
 import scala.swing.audio.parse.arg._
+import dragon.osc.const.Names
 
 package scala.swing.audio.parse {
 
@@ -49,7 +50,7 @@ case class Context(aliases: Map[String,Ui] = Map(), settings: Settings = Setting
     def setVer = this.copy(isHor = false)
 
     def addAlias(name: String, body: Ui) = this.copy(aliases = this.aliases + (name -> body))
-    def loadAlias(name: String) = { println(this.aliases); this.aliases.get(name) }
+    def loadAlias(name: String) = { this.aliases.get(name) }
 
     def setParam(setter: SetParam) = {
         val newSettings = setter match {
@@ -103,7 +104,7 @@ case class WindowSym(name: String, id: Option[String], body: UiDecl) extends Sym
 
 object WindowSym {
     def unapply(s: Sym): Option[(String, Option[(Int, Int)], UiDecl)] = 
-        s.isName("window").flatMap { 
+        s.isName(Names.window).flatMap { 
             case UiMap(m) => for {
                 body <- m.get("body")
                 UiString(title) <- m.get("title")
@@ -118,7 +119,7 @@ object WindowSym {
 
 object TabSym {
     def unapply(s: Sym): Option[List[(String, UiDecl)]] = {
-        s.isNameList("tabs").map { x => x.map { decl => decl match {
+        s.isNameList(Names.tabs).map { x => x.map { decl => decl match {
                 case UiSym(sym) => Some((sym.name, sym.body))
                 case _          => None
             }}.flatten
@@ -141,29 +142,29 @@ object SetParamSym {
 
 object HorSym {
     def unapply(s: Sym): Option[List[UiDecl]] = 
-        s.isNameList("hor")
+        s.isNameList(Names.hor)
 }
 
 object VerSym {
     def unapply(s: Sym): Option[List[UiDecl]] = 
-        s.isNameList("ver")
+        s.isNameList(Names.ver)
 }
 
 object SpaceSym {
     def unapply(s: Sym): Option[Int] =             
-        s.isArgList("space") {
+        s.isArgList(Names.space) {
             for { n <- Arg.int } yield n
         }
 }
 
 object GlueSym {
     def unapply(s: Sym): Boolean = 
-        !(s.isName("glue").isEmpty)
+        !(s.isName(Names.glue).isEmpty)
 }
 
 object LabelSym {
     def unapply(s: Sym): Option[LabelUndef] = 
-        s.isArgList("label"){
+        s.isArgList(Names.label){
             for {
                 text  <- Arg.string
                 color <- Arg.string.orElse
@@ -173,12 +174,12 @@ object LabelSym {
 
 object DialSym {
     def unapply(s: Sym): Option[DialUndef] = 
-        s.floatValue("dial", DialUndef)
+        s.floatValue(Names.dial, DialUndef)
 }
 
 object IntDialSym {
     def unapply(s: Sym): Option[IntDialUndef] = 
-        s.isArgList("int-dial"){
+        s.isArgList(Names.intDial){
             for {
                 init   <- Arg.int
                 minVal <- Arg.int
@@ -191,17 +192,17 @@ object IntDialSym {
 
 object HFaderRangeSym {
     def unapply(s: Sym): Option[HFaderRangeUndef] = 
-        s.floatRangeValue("hfader-range", HFaderRangeUndef)
+        s.floatRangeValue(Names.hfaderRange, HFaderRangeUndef)
 }
 
 object VFaderRangeSym {
     def unapply(s: Sym): Option[VFaderRangeUndef] = 
-        s.floatRangeValue("vfader-range", VFaderRangeUndef)
+        s.floatRangeValue(Names.vfaderRange, VFaderRangeUndef)
 }
 
 object XYPadRangeSym {
     def unapply(s: Sym): Option[XYPadRangeUndef] =
-        s.isArgList("xy-pad-range") {
+        s.isArgList(Names.xyPadRange) {
             for {
                 initX  <- Arg.float2
                 initY  <- Arg.float2
@@ -215,17 +216,17 @@ object XYPadRangeSym {
 
 object HFaderSym {
     def unapply(s: Sym): Option[HFaderUndef] = 
-        s.floatValue("hfader", HFaderUndef)
+        s.floatValue(Names.hfader, HFaderUndef)
 }
 
 object VFaderSym {
     def unapply(s: Sym): Option[VFaderUndef] = 
-        s.floatValue("vfader", VFaderUndef)
+        s.floatValue(Names.vfader, VFaderUndef)
 }
 
 object ButtonSym {
     def unapply(s: Sym): Option[ButtonUndef] = 
-        s.isArgList("button"){
+        s.isArgList(Names.button){
             for {
                 color <- Arg.string.orElse
                 text  <- Arg.string.orElse
@@ -236,7 +237,7 @@ object ButtonSym {
 
 object ToggleSym {
     def unapply(s: Sym): Option[ToggleUndef] = 
-        s.isArgList("toggle"){ 
+        s.isArgList(Names.toggle){ 
             for {
                 init  <- Arg.boolean.orElse
                 color <- Arg.string.orElse
@@ -248,7 +249,7 @@ object ToggleSym {
 
 object MultiToggleSym {
     def unapply(s: Sym): Option[MultiToggleUndef] = 
-        s.isArgList("multi-toggle"){
+        s.isArgList(Names.multiToggle){
             for {
                 rows <- Arg.int
                 cols <- Arg.int
@@ -263,7 +264,7 @@ object MultiToggleSym {
 
 object XYPadSym {
     def unapply(s: Sym): Option[XYPadUndef] = 
-        s.isArgList("xy-pad"){
+        s.isArgList(Names.xyPad){
             for {
                 inits  <- Arg.float2.orElse
                 color  <- Arg.string.orElse
@@ -288,17 +289,17 @@ object Check {
 
 object HCheckSym {
     def unapply(s: Sym): Option[HCheckUndef] = 
-        s.isArgList("hcheck")(Check.arg(HCheckUndef))
+        s.isArgList(Names.hcheck)(Check.arg(HCheckUndef))
 }
 
 object VCheckSym {
     def unapply(s: Sym): Option[VCheckUndef] = 
-        s.isArgList("vcheck")(Check.arg(VCheckUndef))
+        s.isArgList(Names.vcheck)(Check.arg(VCheckUndef))
 }
 
 object DropDownListSym {
     def unapply(s: Sym): Option[DropDownList] = 
-        s.isArgList("drop-down-list"){
+        s.isArgList(Names.dropDownList){
             for {
                 init  <- Arg.int.getOrElse(0)
                 names <- Arg.stringList
@@ -309,7 +310,7 @@ object DropDownListSym {
 
 object TextInputSym {
     def unapply(s: Sym): Option[TextInputUndef] = 
-        s.isArgList("text-input"){
+        s.isArgList(Names.textInput){
             for {
                 init  <- Arg.string.orElse
                 color <- Arg.string.orElse
@@ -489,10 +490,10 @@ object ReadUI {
 
             case WindowSym(title, size, body) => readUi(body).map(x => x.map(y => Window(title, size, y)))
 
-            case AliasSym(name, body) => { println(name); println(body.obj); State.get.flatMap { st => readUi(body).eval(st) match {
+            case AliasSym(name, body) => State.get.flatMap { st => readUi(body).eval(st) match {
                 case None => State.pure[Context,Option[Ui]](None)
                 case Some(x) => addAlias(name, x).next(State.pure[Context,Option[Ui]](None))
-            }} }
+            }}
 
             case RefSym(name, args) => loadAlias(name)           
 

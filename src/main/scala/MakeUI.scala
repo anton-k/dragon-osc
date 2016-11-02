@@ -8,6 +8,7 @@ import scala.swing.audio.ui._
 
 import scala.audio.osc._
 
+import dragon.osc.OscClientPool
 import dragon.osc.input._
 
 package scala.swing.audio.convert {    
