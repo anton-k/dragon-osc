@@ -1,6 +1,7 @@
 
 import scala.swing.audio.parse.arg._
 import dragon.osc.const.Names
+import dragon.osc.act.Act
 
 package scala.swing.audio.parse {
 
@@ -42,7 +43,16 @@ case class Settings(
     def setClientId(osc: OscFloat): OscFloat = osc.copy(oscAddress = setClientId(osc.oscAddress))    
     def setClientId(osc: OscFloat2): OscFloat2 = osc.copy(oscAddress = setClientId(osc.oscAddress))    
     def setClientId(osc: OscBoolean): OscBoolean = osc.copy(oscAddress = setClientId(osc.oscAddress))    
-    def setClientId(osc: OscInt): OscInt = osc.copy(oscAddress = setClientId(osc.oscAddress))    
+    def setClientId(osc: OscInt): OscInt = osc.copy(oscAddress = setClientId(osc.oscAddress))   
+
+    def setClientId(osc: DefaultOscSend): DefaultOscSend = osc match {
+        case x: OscBoolean => setClientId(x)
+        case x: OscFloat   => setClientId(x)
+        case x: OscFloat2  => setClientId(x)
+        case x: OscInt     => setClientId(x)
+    }
+
+    def setClientId(act: Option[Act]): Option[Act] = act.map { a => a.mapDefaultSend(x => this.setClientId(x)) }
 }
 
 case class Context(aliases: Map[String,Ui] = Map(), settings: Settings = Settings(), isHor: Boolean = false) {
@@ -67,40 +77,40 @@ case class Context(aliases: Map[String,Ui] = Map(), settings: Settings = Setting
 }
 
 // Window and tabs
-case class TabSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class TabSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 // Layout
-case class HorSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class VerSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class SpaceSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class HorSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class VerSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class SpaceSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 // Widgets
-case class LabelSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class DialSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class IntDialSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class ButtonSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class ToggleSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class HFaderSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class VFaderSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class MultiToggleSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class XYPadSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class HCheckSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class VCheckSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class LabelSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class DialSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class IntDialSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class ButtonSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class ToggleSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class HFaderSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class VFaderSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class MultiToggleSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class XYPadSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class HCheckSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class VCheckSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
-case class HFaderRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class VFaderRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class XYPadRangeSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class HFaderRangeSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class VFaderRangeSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class XYPadRangeSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
-case class DropDownListSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class TextInputSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class DropDownListSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class TextInputSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 // Control
-case class AliasSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class RefSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class SetParamSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class AliasSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class RefSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class SetParamSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 
-case class WindowSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class WindowSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 object WindowSym {
     def unapply(s: Sym): Option[(String, Option[(Int, Int)], UiDecl)] = 
@@ -242,8 +252,8 @@ object ToggleSym {
                 init  <- Arg.boolean.orElse
                 color <- Arg.string.orElse
                 text  <- Arg.string.orElse
-                osc   <- Arg.oscAddress
-            } yield ToggleUndef(init, color, text, OscBoolean(osc))
+                osc   <- Arg.oscAddress.map(OscBoolean).orElse
+            } yield ToggleUndef(init, color, text, s.act.map(_.withDefaultSend(osc)))
         }
 }
 
@@ -332,7 +342,9 @@ object VGlue extends Ui
 
 case class LabelUndef(text: String, color: Option[String]) extends Ui
 case class ButtonUndef(color: Option[String], text: Option[String], osc: OscBoolean) extends Ui
-case class ToggleUndef(init: Option[Boolean], color: Option[String], text: Option[String], osc: OscBoolean) extends Ui
+
+case class ToggleUndef(init: Option[Boolean], color: Option[String], text: Option[String], act: Option[Act]) extends Ui
+
 case class DialUndef(init: Option[Float], color: Option[String], osc: OscFloat) extends Ui
 case class IntDialUndef(init: Int, range: (Int, Int), color: Option[String], osc: OscInt) extends Ui
 case class VFaderUndef(init: Option[Float], color: Option[String], osc: OscFloat) extends Ui
@@ -360,7 +372,7 @@ case class VCheckUndef(init: Option[Int], size: Int, color: Option[String], text
 
 case class Label(text: String, color: String) extends Ui
 case class Button(color: String, text: Option[String], osc: OscBoolean) extends Ui
-case class Toggle(init: Boolean, color: String, text: Option[String], osc: OscBoolean) extends Ui
+case class Toggle(init: Boolean, color: String, text: Option[String], act: Option[Act]) extends Ui
 
 case class Dial(init: Float, color: String, osc: OscFloat) extends Ui
 case class IntDial(init: Int, range: (Int, Int), color: String, osc: OscInt) extends Ui
@@ -403,7 +415,7 @@ object ReadUI {
         Button(UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.osc))
 
     def setToggleValue(x: ToggleUndef)(settings: Settings) = 
-        Toggle(UiDefaults.getInitBoolean(x.init, settings), UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.osc))
+        Toggle(UiDefaults.getInitBoolean(x.init, settings), UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.act))
 
     def setLabelValue(x: LabelUndef)(settings: Settings) =
         Label(x.text, x.color.getOrElse(UiDefaults.defTextColor))

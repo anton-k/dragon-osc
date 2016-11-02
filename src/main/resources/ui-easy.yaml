@@ -61,7 +61,7 @@
               - vfader f2: [0.1, /amp2]
               - label: ["2"]
             - ver:
-              - vfader f3: [0.1, /amp3]
+              - vfader f3: [0.1, /amp3]                                  
               - label: "3"
         
         - space: 20  
@@ -81,7 +81,7 @@
                     - send: ["/amp", 324]
                   act false:
                     - send: ["/amp", 231]
-                    
+
                 - ver:      
                     - hfader: [/amp]
                     - hfader: [/amp]

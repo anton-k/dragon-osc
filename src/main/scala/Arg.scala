@@ -75,7 +75,8 @@ object UiSym {
     def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>        
         val (name, obj) = x.toList.head
         val (widgetName, id) = splitId(name)
-        Sym(widgetName, id, UiDecl(obj))
+        val act = Act.fromMap(x.mapValues(x => UiDecl(x)))
+        Sym(widgetName, id, UiDecl(obj), act)
     }
 
     private def splitId(name: String) = {
@@ -142,7 +143,8 @@ object UiBoolean {
 trait Sym {
     val name: String
     val id: Option[String]
-    val body: UiDecl    
+    val body: UiDecl 
+    val act: Option[Act]
 
     def isName(str: String) = 
         if (this.name == str)
@@ -213,10 +215,11 @@ trait Sym {
 }
 
 object Sym {
-    def apply(n: String, i: Option[String], b: UiDecl): Sym = new Sym {
+    def apply(n: String, i: Option[String], b: UiDecl, a: Option[Act]): Sym = new Sym {
         val name = n
         val id = i
         val body = b
+        val act = a
     }    
 }
 
@@ -264,16 +267,18 @@ private object Utils {
 
 case class OscAddress(address: String, clientId: Int = 0)
 
-case class OscFloat(oscAddress: OscAddress, range: Range = (0, 1)) {
+case class OscFloat(oscAddress: OscAddress, range: Range = (0, 1)) extends DefaultOscSend {
     def fromRelative(x: Float) = Utils.fromRelative(range)(x)
 }
 
-case class OscFloat2(oscAddress: OscAddress, rangeX: Range, rangeY: Range) {
+case class OscFloat2(oscAddress: OscAddress, rangeX: Range, rangeY: Range) extends DefaultOscSend {
     def fromRelative(p: (Float, Float)) = (Utils.fromRelative(rangeX)(p._1), Utils.fromRelative(rangeY)(p._2))
 }
 
-case class OscBoolean(oscAddress: OscAddress)
-case class OscInt(oscAddress: OscAddress)
+trait DefaultOscSend
+
+case class OscBoolean(oscAddress: OscAddress) extends DefaultOscSend
+case class OscInt(oscAddress: OscAddress) extends DefaultOscSend
 
 object Arg {
 

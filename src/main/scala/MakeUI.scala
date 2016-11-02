@@ -10,6 +10,7 @@ import scala.audio.osc._
 
 import dragon.osc.OscClientPool
 import dragon.osc.input._
+import dragon.osc.act.Act
 
 package scala.swing.audio.convert {    
 
@@ -62,10 +63,18 @@ package scala.swing.audio.convert {
             PushButton(palette(color), text) { echo("PushButton", addr, ""); chn.send(true) }
         }
 
-        def mkToggleButton(osc: OscClientPool, init: Boolean, color: String, text: Option[String], oscVal: Arg.OscBoolean) = {
-            val addr = oscVal.oscAddress
-            val chn  = osc.channel[Boolean](addr)
-            ToggleButton(init, palette(color), text) { x => echo("Toggle", addr, x); chn.send(x) }
+        def mkToggleButton(osc: OscClientPool, init: Boolean, color: String, text: Option[String], optActs: Option[Act]) = optActs match {
+            case None => ToggleButton(init, palette(color), text) { x => echo("Toggle", Arg.OscAddress(""), x) }
+            case Some(acts) => {
+                acts.defaultSend match {                    
+                    case Some(oscVal: Arg.OscBoolean) => {
+                        val addr = oscVal.oscAddress
+                        val chn  = osc.channel[Boolean](addr)
+                        ToggleButton(init, palette(color), text) { x => echo("Toggle", addr, x); chn.send(x) }
+                    }
+                    case _ => ToggleButton(init, palette(color), text) { x => echo("Toggle", Arg.OscAddress(""), x) }
+                }
+            }
         }
 
         def mkXYPad(osc: OscClientPool, init: (Float, Float), color: String, oscVal: Arg.OscFloat2) = {
@@ -162,7 +171,7 @@ package scala.swing.audio.convert {
                 case P.HFader(init, color, oscVal) => mkFloatValue("HFader", osc, init, color, oscVal, (init, color) => f => HFader(init, color)(f))
                 case P.VFader(init, color, oscVal) => mkFloatValue("VFader", osc, init, color, oscVal, (init, color) => f => VFader(init, color)(f))
                 case P.Button(color, text, oscVal) => mkPushButton(osc, color, text, oscVal)
-                case P.Toggle(init, color, text, oscVal) => mkToggleButton(osc, init, color, text, oscVal)
+                case P.Toggle(init, color, text, acts) => mkToggleButton(osc, init, color, text, acts)
                 case P.MultiToggle(size, init, texts, color, textColor, oscAddr) => mkMultiToggle(osc, size, init, texts, color, textColor, oscAddr)
                 case P.XYPad(init, color, oscVal) => mkXYPad(osc, init, color, oscVal)
                 case P.VCheck(init, size, color, text, allowDeselect, oscVal) => mkCheck("VCheck", osc, init, size, color, text, allowDeselect, oscVal, (init, len, color, texts, allowDeselect) => f => VCheck(init, len, color, texts, allowDeselect)(f))

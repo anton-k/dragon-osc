@@ -1,6 +1,6 @@
 package dragon.osc.act
 
-import scala.swing.audio.parse.arg.{Arg, Sym, UiSym, OscAddress, UiDecl, UiList}
+import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, Sym, UiSym, OscAddress, UiDecl, UiList}
 import dragon.osc.const.Names
 
 trait Action
@@ -10,13 +10,26 @@ case class Save(name: String, value: Val) extends Action
 case class Run(file: String)  extends Action
 case class Set[A](id: String, value: A, fireCallback: Boolean) extends Action
 
-case class Act(single: Option[List[Action]], valueMap: Option[Map[String, List[Action]]])
+case class Act(single: Option[List[Action]], valueMap: Option[Map[String, List[Action]]], defaultSend: Option[DefaultOscSend] = None) {
+    def withDefaultSend(x: Option[DefaultOscSend]) = this.copy(defaultSend = x)
+    def mapDefaultSend(f: DefaultOscSend => DefaultOscSend) = this.copy(defaultSend = this.defaultSend.map(f))
+}
 
 case class Msg(oscAddress: OscAddress, args: List[Val])
-case class Val(value: String)
+
+trait Val
+case class IntVal(value: Int) extends Val
+case class FloatVal(value: Float) extends Val
+case class BooleanVal(value: Boolean) extends Val
+case class StringVal(value: String) extends Val
 
 object Val {
-    def read = Arg.string.map(x => Val(x))
+    def read: Arg[Option[Val]] = for {
+        int     <- Arg.int.map(x => IntVal(x)).orElse
+        float   <- Arg.float.map(x => FloatVal(x)).orElse
+        boolean <- Arg.boolean.map(x => BooleanVal(x)).orElse
+        string  <- Arg.string.map(x => StringVal(x)).orElse
+    } yield (int orElse float orElse boolean orElse string)
 }
 
 object Act {
@@ -60,9 +73,9 @@ object Act {
     }
 }
 
-case class SendSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class SaveSym(name: String, id: Option[String], body: UiDecl) extends Sym
-case class RunSym(name: String, id: Option[String], body: UiDecl) extends Sym
+case class SendSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class SaveSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
+case class RunSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
 
 object SendSym {
     def unapply(s: Sym): Option[Msg] = s.isArgList(Names.send) {
@@ -70,7 +83,7 @@ object SendSym {
             clientId <- Arg.int.getOrElse(0)
             addr <- Arg.string
             values <- Arg.many(Val.read)
-        } yield Msg(OscAddress(addr, clientId), values)
+        } yield Msg(OscAddress(addr, clientId), values.flatten)
     }
 }
 
@@ -79,7 +92,7 @@ object SaveSym {
         for {
             name  <- Arg.string
             value <- Val.read
-        } yield (name, value)
+        } yield (name, value.get)
     }
 }
 
