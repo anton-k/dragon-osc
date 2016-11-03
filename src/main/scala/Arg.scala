@@ -120,17 +120,49 @@ object UiFloat {
 class UiOscAddress(val obj: Object) extends UiDecl
 
 object UiOscAddress {
-    def unapply(decl: UiDecl): Option[String] = Yaml.readString(decl.obj).flatMap { x => 
-        if (x.startsWith("/")) Some(x) else None
-    }    
+    private def isOscAddress(str: String) = str.startsWith("/")
+
+    def unapply(decl: UiDecl): Option[OscAddress] = decl match {
+        case UiAnyString(str)                          if isOscAddress(str) => Some(OscAddress(str))
+        case UiList(List(UiString(n), UiAnyString(str)))  if isOscAddress(str) => Some(OscAddress(str, Some(ClientId.fromString(n))))
+        case UiList(List(UiInt(n), UiAnyString(str)))  if isOscAddress(str) => Some(OscAddress(str, Some(ClientId.fromString(n.toString))))
+        case _ => None
+    }
+}
+
+class UiRef(val obj: Object) extends UiDecl
+
+object UiRef {
+    def unapply(decl: UiDecl): Option[String] = decl match {
+        case UiAnyString(str) if str.startsWith("$") => Some(str.drop(1))
+        case _ => None
+    }   
+}
+
+class UiArgRef(val obj: Object) extends UiDecl
+
+object UiArgRef {
+    private def readInt(s: String) = Try{ s.toInt }.toOption
+
+    def unapply(decl: UiDecl): Option[Int] = decl match {
+        case UiAnyString(str) if str.startsWith("$") => readInt(str.drop(1))
+        case _ => None
+    }   
 }
 
 class UiString(val obj: Object) extends UiDecl
 
 object UiString {
-    def unapply(decl: UiDecl): Option[String] = Yaml.readString(decl.obj).flatMap { x => 
-        if (!x.startsWith("/")) Some(x) else None
-    }        
+    def unapply(decl: UiDecl): Option[String] = decl match {
+        case UiAnyString(str) if (!str.startsWith("/")) => Some(str)
+        case _ => None
+    }
+}
+
+class UiAnyString(val obj: Object) extends UiDecl
+
+object UiAnyString {
+    def unapply(decl: UiDecl): Option[String] = Yaml.readString(decl.obj)
 }
 
 class UiBoolean(val obj: Object) extends UiDecl
@@ -232,7 +264,7 @@ case class SetInitInt(init: Int) extends SetParam
 case class SetTitle(title: String) extends SetParam
 case class SetOscClient(clientId: Int) extends SetParam
 
-case class Arg[+A](state: State[List[UiDecl],Option[A]]) {
+case class Arg[+A](state: State[List[UiDecl],Option[A]]) { self =>
     def map[B](f: A => B) = Arg(this.state.map(x => x.map(f)))
 
     def flatMap[B](f: A => Arg[B]) = Arg[B]{ this.state.flatMap { ma => ma match {
@@ -250,10 +282,30 @@ case class Arg[+A](state: State[List[UiDecl],Option[A]]) {
 
     def orElse: Arg[Option[A]] = Arg(this.state.map(x => Some(x)))
 
+    def ||[B >: A](that: Arg[B]) = Arg[B] { new State[List[UiDecl],Option[B]] {
+        def run(s1: List[UiDecl]) = {
+            val (optA, s2) = self.state.run(s1)
+            optA match {
+                case Some(a) => (optA, s2)
+                case None    => that.state.run(s1)                
+            }
+        }
+    }}
+
     def getOrElse[S >: A](other: S): Arg[S] = Arg(this.state.map {
             case None => Some(other)
             case Some(x) => Some(x)
         })
+
+    def eval(xs: List[UiDecl]): Option[A] = 
+        state.eval(xs)
+
+    def eval(x: UiDecl): Option[A] = x match {
+        case UiList(xs) => eval(xs)
+        case _          => None
+    }
+
+    def eval(raw: String): Option[A] = eval(UiDecl(Yaml.loadString(raw)))
 }
 
 
@@ -265,7 +317,17 @@ private object Utils {
     }    
 }
 
-case class OscAddress(address: String, clientId: Int = 0)
+object ClientId {
+    def fromString(str: String) = 
+        if (str == "self") SelfClient
+        else OutsideClientId(str)
+}
+
+trait ClientId 
+case class OutsideClientId(name: String) extends ClientId
+case object SelfClient extends ClientId
+
+case class OscAddress(address: String, clientId: Option[ClientId] = None)
 
 case class OscFloat(oscAddress: OscAddress, range: Range = (0, 1)) extends DefaultOscSend {
     def fromRelative(x: Float) = Utils.fromRelative(range)(x)
@@ -294,16 +356,24 @@ object Arg {
     def many[A](ma: Arg[A]): Arg[List[A]] = Arg { new State[List[UiDecl],Option[List[A]]] {
         def run(xs: List[UiDecl]) = {
             val (a, rest) = ma.state.run(xs)
-            a match {
-                case None => (Some(Nil), xs)
-                case Some(x) => {
-                    val (as, rest2) = many(ma).state.run(rest)
-                    as match {
-                        case None => (Some(Nil), rest2)
-                        case Some(xs) => (Some(x :: xs), rest2)
+            if (rest.isEmpty || xs.length == rest.length) {
+                a match {
+                    case None => (Some(Nil), rest)
+                    case Some(x) => (Some(List(x)), rest)
+                }
+            } else {
+                a match {
+                    case None => (Some(Nil), xs)
+                    case Some(x) => {
+                        val (as, rest2) = many(ma).state.run(rest)
+                        as match {
+                            case None => (Some(Nil), rest2)
+                            case Some(xs) => (Some(x :: xs), rest2)
+                        }
                     }
                 }
             }
+
         } 
     }}
 
@@ -362,7 +432,21 @@ object Arg {
             case UiOscAddress(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
         }
-    }.map(x => OscAddress(x))
+    }
+
+    def memRef: Arg[String] = Arg{ xs =>
+        xs match {
+            case UiRef(str) :: rest => (Some(str), rest)
+            case _ => (None, xs)
+        }
+    }
+
+    def argRef: Arg[Int] = Arg{ xs =>
+        xs match {
+            case UiArgRef(n) :: rest => (Some(n), rest)
+            case _ => (None, xs)
+        }
+    }
 }
 
 object Yaml {
@@ -372,6 +456,11 @@ object Yaml {
         val res = yaml.load(input)
         input.close()
         res
+    }
+
+    def loadString(str: String) = {
+        val yaml = new Yaml()
+        yaml.load(str)
     }
 
     def readList(x: Object) = Try {

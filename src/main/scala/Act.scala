@@ -2,34 +2,43 @@ package dragon.osc.act
 
 import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, Sym, UiSym, OscAddress, UiDecl, UiList}
 import dragon.osc.const.Names
+import dragon.osc.input.InputBase
 
-trait Action
-
-case class Send(msg: Msg) extends Action
-case class Save(name: String, value: Val) extends Action
-case class Run(file: String)  extends Action
-case class Set[A](id: String, value: A, fireCallback: Boolean) extends Action
-
-case class Act(single: Option[List[Action]], valueMap: Option[Map[String, List[Action]]], defaultSend: Option[DefaultOscSend] = None) {
+case class Act(single: Option[List[Msg]], valueMap: Option[Map[String, List[Msg]]], defaultSend: Option[DefaultOscSend] = None) {
     def withDefaultSend(x: Option[DefaultOscSend]) = this.copy(defaultSend = x)
     def mapDefaultSend(f: DefaultOscSend => DefaultOscSend) = this.copy(defaultSend = this.defaultSend.map(f))
+
+    def compileDial(base: InputBase)(x: Float): Unit = ???
+    def compileToggle(base: InputBase)(x: Boolean): Unit = ???
 }
 
 case class Msg(oscAddress: OscAddress, args: List[Val])
+
+object Msg {
+    def read: Arg[Msg] = for {
+        addr <- Arg.oscAddress
+        vals <- Val.readList
+    } yield Msg(addr, vals)
+}
 
 trait Val
 case class IntVal(value: Int) extends Val
 case class FloatVal(value: Float) extends Val
 case class BooleanVal(value: Boolean) extends Val
 case class StringVal(value: String) extends Val
+case class ArgRef(id: Int) extends Val
+case class MemRef(ref: String) extends Val
 
 object Val {
-    def read: Arg[Option[Val]] = for {
-        int     <- Arg.int.map(x => IntVal(x)).orElse
-        float   <- Arg.float.map(x => FloatVal(x)).orElse
-        boolean <- Arg.boolean.map(x => BooleanVal(x)).orElse
-        string  <- Arg.string.map(x => StringVal(x)).orElse
-    } yield (int orElse float orElse boolean orElse string)
+    def readList: Arg[List[Val]] = Arg.many(Val.read)
+
+    def read: Arg[Val] = 
+           Arg.argRef.map(ArgRef) || 
+           Arg.memRef.map(MemRef) || 
+           Arg.int.map(IntVal)    ||
+           Arg.float.map(FloatVal)||
+           Arg.boolean.map(BooleanVal) ||
+           Arg.string.map(StringVal)    
 }
 
 object Act {
@@ -48,13 +57,13 @@ object Act {
         if (xs.isEmpty) None
         else Some(f(xs))
 
-    private def mkSingles(xs: List[UiDecl]): List[Action] = 
+    private def mkSingles(xs: List[UiDecl]): List[Msg] = 
         parseActionList(xs.flatMap { x => x match {
             case UiList(ys) => ys
             case _ => Nil
         }})
 
-    private def mkValues(xs: List[(String, UiDecl)]): Map[String, List[Action]] = 
+    private def mkValues(xs: List[(String, UiDecl)]): Map[String, List[Msg]] = 
         xs.flatMap { x => x match {
             case (name, UiList(acts)) => List((name, parseActionList(acts)))
             case _ => Nil
@@ -62,41 +71,8 @@ object Act {
 
     private def parseActionList(xs: List[UiDecl]) = xs.map(parseAction).flatten
 
-    private def parseAction(x: UiDecl): Option[Action] = x match {
-        case UiSym(sym) => sym match {
-            case SendSym(msg)           => Some(Send(msg))
-            case SaveSym(name, value)   => Some(Save(name, value))
-            case RunSym(file)           => Some(Run(file))
-            case _                      => None
-        }
+    private def parseAction(x: UiDecl): Option[Msg] = x match {
+        case UiList(xs) => Msg.read.eval(xs)
         case _ => None
     }
 }
-
-case class SendSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
-case class SaveSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
-case class RunSym(name: String, id: Option[String], body: UiDecl, act: Option[Act]) extends Sym
-
-object SendSym {
-    def unapply(s: Sym): Option[Msg] = s.isArgList(Names.send) {
-        for {
-            clientId <- Arg.int.getOrElse(0)
-            addr <- Arg.string
-            values <- Arg.many(Val.read)
-        } yield Msg(OscAddress(addr, clientId), values.flatten)
-    }
-}
-
-object SaveSym {
-    def unapply(s: Sym): Option[(String,Val)] = s.isArgList(Names.save) {
-        for {
-            name  <- Arg.string
-            value <- Val.read
-        } yield (name, value.get)
-    }
-}
-
-object RunSym {
-    def unapply(s: Sym): Option[String] = s.isArgList(Names.run) { Arg.string }
-}
-

@@ -6,7 +6,9 @@ mainClass in (Compile,run) := Some("App")
 libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-swing" % "2.10+"
     , "org.yaml" % "snakeyaml" % "1.16" 
-    , "com.github.scopt" %% "scopt" % "3.5.0")
+    , "com.github.scopt" %% "scopt" % "3.5.0"
+    , "org.scalactic" %% "scalactic" % "3.0.0"
+    , "org.scalatest" %% "scalatest" % "3.0.0" % "test")
 
 
 lazy val commonSettings = Seq(

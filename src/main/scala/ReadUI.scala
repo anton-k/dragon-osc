@@ -37,7 +37,7 @@ case class Settings(
 
     def setClientId(osc: OscAddress): OscAddress = oscClient match {
         case None => osc
-        case Some(n) => osc.copy(clientId = n)
+        case Some(n) => osc.copy(clientId = Some(OutsideClientId(n.toString)))
     }
 
     def setClientId(osc: OscFloat): OscFloat = osc.copy(oscAddress = setClientId(osc.oscAddress))    

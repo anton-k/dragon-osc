@@ -1,23 +1,25 @@
 package dragon.osc
 
 import scala.audio.osc._
-import scala.swing.audio.parse.arg.OscAddress
+import scala.swing.audio.parse.arg.{OscAddress, OutsideClientId}
 import dragon.osc.input.{SetupOscServer, InputBase}
 
-case class OscClientPool(clients: List[OscClient]) {
-    def channel[A](oscAddress: OscAddress)(implicit codec: MessageCodec[A]): Channel[A] = 
-        if (oscAddress.clientId >= clients.length) {
-            throw new Exception(s"The osc client id is out of bounds ${oscAddress.clientId}")
-        } else {
-            clients(oscAddress.clientId).channel[A](oscAddress.address)(codec)
-        }
+case class OscClientPool(clients: Map[String,OscClient]) {
+    def channel[A](oscAddress: OscAddress)(implicit codec: MessageCodec[A]): Channel[A] = {
+        val defaultClient = clients.values.head      
+        val client = oscAddress.clientId.flatMap(id => id match {
+            case OutsideClientId(name) => clients.get(name)
+            case _ => None
+        }).getOrElse(defaultClient)
+        client.channel[A](oscAddress.address)(codec)
+    }
 
-    def close = clients.foreach(_.close)
+    def close = clients.values.foreach(_.close)
 }
 
 object Osc {
     def client(port: Int) = 
-        OscClientPool(List(OscClient(port)))
+        OscClientPool(Map("0" -> OscClient(port)))
 
     def server(port: Int, inputBase: InputBase) = {
         val srv = OscServer(port)

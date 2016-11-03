@@ -35,11 +35,11 @@
         - songs:
           - vcheck: [0, 6, olive, [intro, bhopali, cosmonauts, yaman, fidel, charukeshi, swan], false, /song]
             act 0:
-              - script: ["intro.txt"]
+              - load: intro.txt
             act 1:
-              - script: ["bhopali.txt"]
+              - load: bhopali.txt
             act 2: 
-              - script: ["yaman.txt"]
+              - load: yaman.txt
 - window:
     title: win2
     size: [450, 450]
@@ -55,32 +55,30 @@
             - q  
             - space: 10     
             - ver:
-              - vfader f1: [0.1, /amp1, -1.0, 1.0]
+              - vfader f1: [0.1, /amp/1]
               - label: ["1"]
             - ver:              
-              - vfader f2: [0.1, /amp2]
+              - vfader f2: [0.1, /amp/2]
               - label: ["2"]
             - ver:
-              - vfader f3: [0.1, /amp3]                                  
+              - vfader f3: [0.1, /amp/3]
               - label: "3"
         
         - space: 20  
         - set-color olive:
           - set-init-float 0.85:
             - hor: 
-                - button: [/but1]
+                - button: [yellow]
                   act:
-                    - send: []
-                    - save: []
-                    - run:  []
-
+                    - self: [/save, mem1, 20]
+                    - flow: [/next-track, $1]
                 - space: 30 
 
                 - toggle: [false, orange, /tog1]
                   act true:
-                    - send: ["/amp", 324]
+                    - ["/amp/1", 10]
                   act false:
-                    - send: ["/amp", 231]
+                    - [[flow, /amp/2], 231]
 
                 - ver:      
                     - hfader: [/amp]
