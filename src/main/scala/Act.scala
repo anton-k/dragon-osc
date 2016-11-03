@@ -3,6 +3,14 @@ package dragon.osc.act
 import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, Sym, UiSym, OscAddress, UiDecl, UiList}
 import dragon.osc.const.Names
 import dragon.osc.input.InputBase
+import dragon.osc.Osc
+
+private object Utils {
+    def toBooleanMap[A](m: Map[String,A]): Map[Boolean,A] = {
+        val boleanKeys = List("true", "false")
+        m.filterKeys(key => boleanKeys.contains(key)).toList.map(p => (p._1.toBoolean, p._2)).toMap
+    }
+}
 
 case class Act(single: Option[List[Msg]], valueMap: Option[Map[String, List[Msg]]], defaultSend: Option[DefaultOscSend] = None) {
     def withDefaultSend(x: Option[DefaultOscSend]) = this.copy(defaultSend = x)
@@ -10,9 +18,40 @@ case class Act(single: Option[List[Msg]], valueMap: Option[Map[String, List[Msg]
 
     def compileDial(base: InputBase)(x: Float): Unit = ???
     def compileToggle(base: InputBase)(x: Boolean): Unit = ???
+
+    def toSpecBoolean: SpecAct[Boolean] = {
+        val map = valueMap.map(Utils.toBooleanMap)
+        SpecAct[Boolean](single, map, defaultSend)
+    }
+}
+
+case class Memory(memory: Map[String, PrimVal])
+
+object SpecAct {
+    def genToPrimVal[A,B](extract: (A, Int) => Option[B], mk: B => PrimVal)(a: A, memory: Memory)(v: Val) = v match {
+        case x: PrimVal => Some(x)
+        case ArgRef(n) => extract(a, n).map(mk)
+        case MemRef(name) => memory.memory.get(name)
+        case _ => None
+    }
+
+    def toPrimVal(a: Float, memory: Memory)(v: Val) = genToPrimVal[Float,Float]((a, n) => if (n == 1) Some(a) else None, FloatVal)(a, memory)(v)
+    def toPrimVal(a: Boolean, memory: Memory)(v: Val) = genToPrimVal[Boolean,Boolean]((a, n) => if (n == 1) Some(a) else None, BooleanVal)(a, memory)(v)
+    def toPrimVal(a: String, memory: Memory)(v: Val) = genToPrimVal[String,String]((a, n) => if (n == 1) Some(a) else None, StringVal)(a, memory)(v)
+    def toPrimVal(a: Int, memory: Memory)(v: Val) = genToPrimVal[Int,Int]((a, n) => if (n == 1) Some(a) else None, IntVal)(a, memory)(v)
+}
+
+case class SpecAct[A](single: Option[List[Msg]], valueMap: Option[Map[A,List[Msg]]], defaultSend: Option[DefaultOscSend] = None) {
+    def act(a: A, memory: Memory, osc: Osc) = primMsgs(a, memory).foreach(_.send(osc))
+
+    private def primMsgs(a: A, memory: Memory): List[PrimMsg] = ???
 }
 
 case class Msg(oscAddress: OscAddress, args: List[Val])
+
+case class PrimMsg(oscAddress: OscAddress, args: List[PrimVal]) {
+    def send(osc: Osc): Unit = ???
+}
 
 object Msg {
     def read: Arg[Msg] = for {
@@ -22,10 +61,12 @@ object Msg {
 }
 
 trait Val
-case class IntVal(value: Int) extends Val
-case class FloatVal(value: Float) extends Val
-case class BooleanVal(value: Boolean) extends Val
-case class StringVal(value: String) extends Val
+trait PrimVal
+
+case class IntVal(value: Int) extends Val with PrimVal
+case class FloatVal(value: Float) extends Val with PrimVal
+case class BooleanVal(value: Boolean) extends Val with PrimVal
+case class StringVal(value: String) extends Val with PrimVal
 case class ArgRef(id: Int) extends Val
 case class MemRef(ref: String) extends Val
 

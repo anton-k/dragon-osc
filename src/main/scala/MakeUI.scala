@@ -8,7 +8,7 @@ import scala.swing.audio.ui._
 
 import scala.audio.osc._
 
-import dragon.osc.OscClientPool
+import dragon.osc.Osc
 import dragon.osc.input._
 import dragon.osc.act.Act
 
@@ -21,9 +21,9 @@ package scala.swing.audio.convert {
         def echo[A](msg: String, oscAddress: Arg.OscAddress, value: A) =
             println(s"${msg}${oscAddress.address} ${value}")
 
-        def readFile(osc: OscClientPool, filename: String) = P.ReadUI.readUi(Arg.UiDecl.loadFile(filename)).eval(P.Context()).map(x => convertTopLevel(osc)(x).run(InputBase())).get
+        def readFile(osc: Osc, filename: String) = P.ReadUI.readUi(Arg.UiDecl.loadFile(filename)).eval(P.Context()).map(x => convertTopLevel(osc)(x).run(InputBase())).get
 
-        def mkTabbed(osc: OscClientPool)(body: List[(String, P.Ui)]) = 
+        def mkTabbed(osc: Osc)(body: List[(String, P.Ui)]) = 
             mapM(body){{ case (name, content) => convert(osc)(content).map(ui => (name, ui)) }}.map { body =>
                 new TabbedPane {
                     import TabbedPane._
@@ -41,13 +41,13 @@ package scala.swing.audio.convert {
         def hor(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Horizontal)(items)(code)
         def ver(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Vertical)(items)(code)
 
-        def mkFloatValue[A](message: String, osc: OscClientPool, init: Float, color: String, oscVal: Arg.OscFloat, mk: (Float, Color) => (Float => Unit) => A) = {
+        def mkFloatValue[A](message: String, osc: Osc, init: Float, color: String, oscVal: Arg.OscFloat, mk: (Float, Color) => (Float => Unit) => A) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[Float](addr)
             mk(init, palette(color)) { x => { val res = oscVal.fromRelative(x); echo(message, addr, res); chn.send(res) }}            
         }
 
-        def mkFloatRangeValue[A](message: String, osc: OscClientPool, init: (Float,Float), color: String, oscVal: Arg.OscFloat, mk: ((Float,Float), Color) => ((Float, Float) => Unit) => A) = {
+        def mkFloatRangeValue[A](message: String, osc: Osc, init: (Float,Float), color: String, oscVal: Arg.OscFloat, mk: ((Float,Float), Color) => ((Float, Float) => Unit) => A) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[(Float,Float)](addr)
             mk(init, palette(color)) { (x1, x2) => { 
@@ -57,13 +57,13 @@ package scala.swing.audio.convert {
             }}            
         }
 
-        def mkPushButton(osc: OscClientPool, color: String, text: Option[String], oscVal: Arg.OscBoolean) = {
+        def mkPushButton(osc: Osc, color: String, text: Option[String], oscVal: Arg.OscBoolean) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[Boolean](addr)
             PushButton(palette(color), text) { echo("PushButton", addr, ""); chn.send(true) }
         }
 
-        def mkToggleButton(osc: OscClientPool, init: Boolean, color: String, text: Option[String], optActs: Option[Act]) = optActs match {
+        def mkToggleButton(osc: Osc, init: Boolean, color: String, text: Option[String], optActs: Option[Act]) = optActs match {
             case None => ToggleButton(init, palette(color), text) { x => echo("Toggle", Arg.OscAddress(""), x) }
             case Some(acts) => {
                 acts.defaultSend match {                    
@@ -77,7 +77,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkXYPad(osc: OscClientPool, init: (Float, Float), color: String, oscVal: Arg.OscFloat2) = {
+        def mkXYPad(osc: Osc, init: (Float, Float), color: String, oscVal: Arg.OscFloat2) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[(Float, Float)](addr)
             XYPad(init._1, init._2, palette(color)) { (x, y) => val res = oscVal.fromRelative((x, y)); echo("XYPad", addr, res); chn.send(res) }
@@ -86,7 +86,7 @@ package scala.swing.audio.convert {
         def toLinInt(size: (Int, Int))(p: (Int, Int)) = p._1 + p._2 * size._1
         def fromLinInt(size: (Int, Int))(n: Int) = (n % size._1, n / size._1)
 
-        def mkMultiToggle(osc: OscClientPool, size: (Int, Int), init: List[Int], texts: List[String], color: String, textColor: String, oscAddress: Arg.OscAddress) = {
+        def mkMultiToggle(osc: Osc, size: (Int, Int), init: List[Int], texts: List[String], color: String, textColor: String, oscAddress: Arg.OscAddress) = {
             val chn = osc.channel[(Int, Boolean)](oscAddress)
             MultiToggle(init.toSet.map((x: Int) => fromLinInt(size)(x)), size._1, size._2, palette(color), palette(textColor), texts) { (p, trig) =>
                 val v = toLinInt(size)(p)
@@ -95,7 +95,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkIntDial(osc: OscClientPool, init: Int, range: (Int, Int), color: String, oscVal: Arg.OscInt) = {
+        def mkIntDial(osc: Osc, init: Int, range: (Int, Int), color: String, oscVal: Arg.OscInt) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[Int](addr)
             IntDial(init, range, palette(color)){ n => 
@@ -104,7 +104,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkDropDownList(osc: OscClientPool, init: Int, names: List[String], oscVal: Arg.OscInt) = {
+        def mkDropDownList(osc: Osc, init: Int, names: List[String], oscVal: Arg.OscInt) = {
             val addr = oscVal.oscAddress
             val chn  = osc.channel[Int](addr)
             DropDownList(init, names) { n =>                 
@@ -113,7 +113,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkTextInput(osc: OscClientPool, init: Option[String], color: String, addr: Arg.OscAddress) = {
+        def mkTextInput(osc: Osc, init: Option[String], color: String, addr: Arg.OscAddress) = {
             val chn = osc.channel[String](addr)
             TextInput(init, palette(color)) { str =>                
                 echo("TextInput", addr, str)
@@ -121,7 +121,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkXYPadRange(osc: OscClientPool, initX: (Float, Float), initY: (Float, Float), color: String, oscVal: Arg.OscFloat2) = {
+        def mkXYPadRange(osc: Osc, initX: (Float, Float), initY: (Float, Float), color: String, oscVal: Arg.OscFloat2) = {
             val addr = oscVal.oscAddress
             val chn = osc.channel[(Arg.Range, Arg.Range)](addr)
             XYPadRange(initX, initY, palette(color)) { (xs, ys) =>
@@ -134,7 +134,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def mkCheck[A](widgetName: String, osc: OscClientPool, init: Int, len: Int, color: String, texts: List[String], allowDeselect: Boolean, oscVal: Arg.OscInt, mk: (Int,Int,Color,List[String],Boolean) => (Int => Unit) => A) = {
+        def mkCheck[A](widgetName: String, osc: Osc, init: Int, len: Int, color: String, texts: List[String], allowDeselect: Boolean, oscVal: Arg.OscInt, mk: (Int,Int,Color,List[String],Boolean) => (Int => Unit) => A) = {
             val addr = oscVal.oscAddress
             val chn = osc.channel[Int](addr)
             mk(init, len, palette(color), texts, allowDeselect) { n =>
@@ -143,7 +143,7 @@ package scala.swing.audio.convert {
             }
         }
 
-        def convertTopLevel(osc: OscClientPool)(x: P.Ui): State[InputBase,List[Window]] = x match {
+        def convertTopLevel(osc: Osc)(x: P.Ui): State[InputBase,List[Window]] = x match {
             case P.Window(title, size, items) => (convert(osc)(items)).map { ui => List(Window(Some(title), size, ui)) }
             case P.Root(xs) => (State.mapM(xs) { convertTopLevel(osc) }).map(_.flatten)
             case _ => (convert(osc)(x)).map { ui => List(Window(None, None, ui)) }
@@ -153,7 +153,7 @@ package scala.swing.audio.convert {
 
         def mapM[A,B](as: List[A])(f: A => State[InputBase,B]): State[InputBase,List[B]] = State.mapM[InputBase,A,B](as)(f)
 
-        def convert(osc: OscClientPool)(x: P.Ui): State[InputBase,Component] = x match {
+        def convert(osc: Osc)(x: P.Ui): State[InputBase,Component] = x match {
             case P.WithId(id, widget) => convert(osc)(widget).flatMap(ui => State.modify[InputBase](_.addWidgetSet(id, ui)).next(State.pure(ui))) 
             case P.Tab(xs)  => mkTabbed(osc)(xs)            
             case P.Root(xs) => mapM(xs)(convert(osc)).map(uis => hor(uis))

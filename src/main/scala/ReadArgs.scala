@@ -1,6 +1,14 @@
+package dragon.osc.readargs
+
+import java.io._
 import scala.util.Try
 
 case class Args(inPort: Int, outPort: Int, filename: String)
+
+object Utils {
+    def resourceFile(p: String): String = 
+        Option(getClass.getResource(p).getPath()).getOrElse(throw new FileNotFoundException(p))
+}
 
 object ReadArgs {
     def apply(args: Array[String]) = {

@@ -10,26 +10,18 @@ import scala.audio.osc._
 
 import swing._
 import event._
-import java.util.Date
-import java.awt.Color
-import java.text.SimpleDateFormat
-import javax.swing.{Icon, ImageIcon}
 
 import dragon.osc.Osc
 import dragon.osc.input.SetupOscServer
-
-object Utils {
-    def resourceFile(p: String): String = 
-        Option(getClass.getResource(p).getPath()).getOrElse(throw new FileNotFoundException(p))
-}
+import dragon.osc.readargs.ReadArgs
 
 object App {
 
   def main(rawArgs: Array[String]) {  
     val args = ReadArgs(rawArgs)
-    val oscClient = Osc.client(args.inPort)
-    val (wins, inputBase) = Convert.readFile(oscClient, args.filename)
-    val oscServer = Osc.server(args.outPort, inputBase) 
+    val osc = Osc(args)
+    val (wins, inputBase) = Convert.readFile(osc, args.filename)    
+    osc.addListeners(inputBase)
 
     wins.zipWithIndex.foreach { case (window, ix) => { 
         val ui = new MainFrame { self => 
@@ -42,14 +34,12 @@ object App {
 
             override def closeOperation {
                 println("Close now")
-                oscClient.close  
-                oscServer.close
+                osc.close                  
                 Thread.sleep(1)          
                 System.exit(0)                
             }
         }
         ui.visible = true        
-    }}   
-
+    }}
   }
 }
