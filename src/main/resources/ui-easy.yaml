@@ -28,7 +28,7 @@
                     - toggle e: [true, orange, e, /tap4]
                     - toggle f: [true, orange, f, /tap5]
                     - toggle g: [true, orange, g, /tap6]
-                    - toggle a : [true, orange, a, /tap1]
+                    - toggle a: [true, orange, a, /tap1]
                     - toggle h: [true, orange, h, /tap2]                    
               - notes
               - notes
@@ -76,14 +76,18 @@
 
                 - toggle: [false, orange, /tog1]
                   act true:
-                    - ["/amp/1", 10]
+                    - [/amp/1, 10]
+                    - [[self, /save], a, 12] 
                   act false:
-                    - [[flow, /amp/2], 231]
+                    - [/amp/2, 231]
 
                 - ver:      
                     - hfader: [/amp]
                     - hfader: [/amp]
         - button: [red, start, /start]
+          act:
+            - [/start1, play]
+            - [/start2, play]
 
         - multi-toggle: [4, 3, [0, 1, 3, 4], [a,b,c,d,f, g, d, f], olive, /mtog]
 

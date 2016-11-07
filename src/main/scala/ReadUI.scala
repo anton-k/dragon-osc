@@ -1,7 +1,7 @@
 
 import scala.swing.audio.parse.arg._
 import dragon.osc.const.Names
-import dragon.osc.act.Act
+import dragon.osc.act.{Act, SpecAct}
 
 package scala.swing.audio.parse {
 
@@ -195,8 +195,8 @@ object IntDialSym {
                 minVal <- Arg.int
                 maxVal <- Arg.int
                 color  <- Arg.string.orElse                
-                addr   <- Arg.oscAddress
-            } yield IntDialUndef(init, (minVal, maxVal), color, OscInt(addr))
+                osc    <- Arg.oscAddress.map(OscInt).orElse
+            } yield IntDialUndef(init, (minVal, maxVal), color, s.act.map(_.withDefaultSend(osc)))
         }
 }
 
@@ -240,8 +240,8 @@ object ButtonSym {
             for {
                 color <- Arg.string.orElse
                 text  <- Arg.string.orElse
-                addr  <- Arg.oscAddress          
-            } yield ButtonUndef(color, text, OscBoolean(addr))
+                osc   <- Arg.oscAddress.map(OscBoolean).orElse         
+            } yield ButtonUndef(color, text, s.act.map(_.withDefaultSend(osc)))
         }
 }
 
@@ -287,24 +287,24 @@ object XYPadSym {
 
 
 object Check {
-    def arg[A](mk: (Option[Int], Int, Option[String], List[String], Option[Boolean], OscInt) => A): Arg[A] = for {
+    def arg[A](s: Sym, mk: (Option[Int], Int, Option[String], List[String], Option[Boolean], Option[Act]) => A): Arg[A] = for {
         init  <- Arg.int.orElse
         size  <- Arg.int
         color <- Arg.string.orElse
         text  <- Arg.stringListOrEmpty
         allowDeselect <- Arg.boolean.orElse
-        addr  <- Arg.oscAddress
-    } yield mk(init, size, color, text, allowDeselect, OscInt(addr))
+        osc   <- Arg.oscAddress.map(OscInt).orElse
+    } yield mk(init, size, color, text, allowDeselect, s.act.map(_.withDefaultSend(osc)))
 }
 
 object HCheckSym {
     def unapply(s: Sym): Option[HCheckUndef] = 
-        s.isArgList(Names.hcheck)(Check.arg(HCheckUndef))
+        s.isArgList(Names.hcheck)(Check.arg(s, HCheckUndef))
 }
 
 object VCheckSym {
     def unapply(s: Sym): Option[VCheckUndef] = 
-        s.isArgList(Names.vcheck)(Check.arg(VCheckUndef))
+        s.isArgList(Names.vcheck)(Check.arg(s, VCheckUndef))
 }
 
 object DropDownListSym {
@@ -341,12 +341,11 @@ object HGlue extends Ui
 object VGlue extends Ui
 
 case class LabelUndef(text: String, color: Option[String]) extends Ui
-case class ButtonUndef(color: Option[String], text: Option[String], osc: OscBoolean) extends Ui
+case class ButtonUndef(color: Option[String], text: Option[String], osc: Option[Act]) extends Ui
 
 case class ToggleUndef(init: Option[Boolean], color: Option[String], text: Option[String], act: Option[Act]) extends Ui
-
 case class DialUndef(init: Option[Float], color: Option[String], osc: OscFloat) extends Ui
-case class IntDialUndef(init: Int, range: (Int, Int), color: Option[String], osc: OscInt) extends Ui
+case class IntDialUndef(init: Int, range: (Int, Int), color: Option[String], act: Option[Act]) extends Ui
 case class VFaderUndef(init: Option[Float], color: Option[String], osc: OscFloat) extends Ui
 case class HFaderUndef(init: Option[Float], color: Option[String], osc: OscFloat) extends Ui 
 case class MultiToggleUndef(size: (Int, Int), init: List[Int], texts: List[String], color: Option[String], textColor: Option[String], oscAddress: OscAddress) extends Ui
@@ -363,25 +362,25 @@ trait CheckUndef {
     def color: Option[String]
     def text: List[String]
     def allowDeselect: Option[Boolean]
-    def osc: OscInt 
+    def act: Option[Act]
 }
 
-case class HCheckUndef(init: Option[Int], size: Int, color: Option[String], text: List[String], allowDeselect: Option[Boolean], osc: OscInt) extends CheckUndef with Ui
-case class VCheckUndef(init: Option[Int], size: Int, color: Option[String], text: List[String], allowDeselect: Option[Boolean], osc: OscInt) extends CheckUndef with Ui
+case class HCheckUndef(init: Option[Int], size: Int, color: Option[String], text: List[String], allowDeselect: Option[Boolean], act: Option[Act]) extends CheckUndef with Ui
+case class VCheckUndef(init: Option[Int], size: Int, color: Option[String], text: List[String], allowDeselect: Option[Boolean], act: Option[Act]) extends CheckUndef with Ui
 
 
 case class Label(text: String, color: String) extends Ui
-case class Button(color: String, text: Option[String], osc: OscBoolean) extends Ui
-case class Toggle(init: Boolean, color: String, text: Option[String], act: Option[Act]) extends Ui
+case class Button(color: String, text: Option[String], act: Option[SpecAct[Boolean]]) extends Ui
+case class Toggle(init: Boolean, color: String, text: Option[String], act: Option[SpecAct[Boolean]]) extends Ui
 
 case class Dial(init: Float, color: String, osc: OscFloat) extends Ui
-case class IntDial(init: Int, range: (Int, Int), color: String, osc: OscInt) extends Ui
+case class IntDial(init: Int, range: (Int, Int), color: String, act: Option[SpecAct[Int]]) extends Ui
 case class VFader(init: Float, color: String, osc: OscFloat) extends Ui
 case class HFader(init: Float, color: String, osc: OscFloat) extends Ui 
 case class MultiToggle(size: (Int, Int), init: List[Int], texts: List[String], color: String, textColor: String, oscAddr: OscAddress) extends Ui
 case class XYPad(init: (Float, Float), color: String, osc: OscFloat2) extends Ui
-case class HCheck(init: Int, size: Int, color: String, text: List[String], allowDeselect: Boolean, osc: OscInt) extends Ui
-case class VCheck(init: Int, size: Int, color: String, text: List[String], allowDeselect: Boolean, osc: OscInt) extends Ui
+case class HCheck(init: Int, size: Int, color: String, text: List[String], allowDeselect: Boolean, act: Option[SpecAct[Int]]) extends Ui
+case class VCheck(init: Int, size: Int, color: String, text: List[String], allowDeselect: Boolean, act: Option[SpecAct[Int]]) extends Ui
 case class HFaderRange(init: (Float, Float), color: String, osc: OscFloat) extends Ui
 case class VFaderRange(init: (Float, Float), color: String, osc: OscFloat) extends Ui
 case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: String, osc: OscFloat2) extends Ui
@@ -412,10 +411,10 @@ object ReadUI {
         mkValue(x.init, UiDefaults.getColor(x.color, settings), settings.setClientId(x.osc))
 
     def setButtonValue(x: ButtonUndef)(settings: Settings) = 
-        Button(UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.osc))
+        Button(UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.osc).map(_.compileButton))
 
     def setToggleValue(x: ToggleUndef)(settings: Settings) = 
-        Toggle(UiDefaults.getInitBoolean(x.init, settings), UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.act))
+        Toggle(UiDefaults.getInitBoolean(x.init, settings), UiDefaults.getColor(x.color, settings), x.text, settings.setClientId(x.act).map(_.compileToggle))
 
     def setLabelValue(x: LabelUndef)(settings: Settings) =
         Label(x.text, x.color.getOrElse(UiDefaults.defTextColor))
@@ -426,9 +425,9 @@ object ReadUI {
     def setXYPad(x: XYPadUndef)(settings: Settings) = 
         XYPad(x.init.getOrElse((0.5f, 0.5f)), UiDefaults.getColor(x.color, settings), settings.setClientId(x.osc))
 
-    def setCheck(x: CheckUndef, mk: (Int, Int, String, List[String], Boolean, OscInt) => Ui)(settings: Settings) = {
+    def setCheck(x: CheckUndef, mk: (Int, Int, String, List[String], Boolean, Option[SpecAct[Int]]) => Ui)(settings: Settings) = {
         val allowDeselect = x.allowDeselect.getOrElse(false)
-        mk(UiDefaults.getCheckInit(x.init, allowDeselect), x.size, UiDefaults.getColor(x.color, settings), x.text, allowDeselect, settings.setClientId(x.osc))
+        mk(UiDefaults.getCheckInit(x.init, allowDeselect), x.size, UiDefaults.getColor(x.color, settings), x.text, allowDeselect, settings.setClientId(x.act).map(_.compileInt))
     }
 
     def setXYPadRange(x: XYPadRangeUndef)(settings: Settings) = 
@@ -438,7 +437,7 @@ object ReadUI {
         TextInput(x.init, UiDefaults.getColor(x.color, settings), settings.setClientId(x.oscAddress))
 
     def setIntDial(x: IntDialUndef)(settings: Settings) =
-        IntDial(x.init, x.range, UiDefaults.getColor(x.color, settings), settings.setClientId(x.osc))
+        IntDial(x.init, x.range, UiDefaults.getColor(x.color, settings), settings.setClientId(x.act).map(_.compileInt))
 
     def withSettings(f: Settings => Ui): State[Context, Option[Ui]] = 
         State.get.map(ctx => Some(f(ctx.settings)))

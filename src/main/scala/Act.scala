@@ -1,14 +1,28 @@
 package dragon.osc.act
 
-import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, Sym, UiSym, OscAddress, UiDecl, UiList}
+import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, OscBoolean, OscInt, OscFloat, Sym, UiSym, OscAddress, UiDecl, UiList}
 import dragon.osc.const.Names
 import dragon.osc.input.InputBase
 import dragon.osc.Osc
+import scala.audio.osc.MessageCodec
+import scala.util.Try
+
+case class St(osc: Osc, memory: Memory)
 
 private object Utils {
     def toBooleanMap[A](m: Map[String,A]): Map[Boolean,A] = {
         val boleanKeys = List("true", "false")
         m.filterKeys(key => boleanKeys.contains(key)).toList.map(p => (p._1.toBoolean, p._2)).toMap
+    }
+
+    def toIntMap[A](m: Map[String,A]): Map[Int,A] = 
+        m.map({ case (k, v) => Try { k.toInt }.toOption.map( n => (n -> v)) }).flatten.toMap[Int,A]
+
+    def traverseOption[A,B](xs: List[A])(f: A => Option[B]): Option[List[B]] = xs match {
+        case Nil => Some(Nil)
+        case a :: as => f(a).flatMap { x => 
+            traverseOption(as)(f).map(tail => x :: tail)
+        }
     }
 }
 
@@ -17,40 +31,66 @@ case class Act(single: Option[List[Msg]], valueMap: Option[Map[String, List[Msg]
     def mapDefaultSend(f: DefaultOscSend => DefaultOscSend) = this.copy(defaultSend = this.defaultSend.map(f))
 
     def compileDial(base: InputBase)(x: Float): Unit = ???
-    def compileToggle(base: InputBase)(x: Boolean): Unit = ???
+    def compileToggle: SpecAct[Boolean] = toSpecBoolean 
+    def compileButton: SpecAct[Boolean] = 
+        SpecAct[Boolean](getDefaultSendList(buttonDefaultSend), None)
 
-    def toSpecBoolean: SpecAct[Boolean] = {
-        val map = valueMap.map(Utils.toBooleanMap)
-        SpecAct[Boolean](single, map, defaultSend)
-    }
-}
+    def compileInt: SpecAct[Int] = 
+        SpecAct[Int](getDefaultSendList(fromDefaultSend), valueMap.map(Utils.toIntMap))    
+    
+    private def getDefaultSendList(onDefault: DefaultOscSend => Msg) = 
+        defaultSend.map(onDefault).toList ++ single.getOrElse(Nil)
 
-case class Memory(memory: Map[String, PrimVal])
-
-object SpecAct {
-    def genToPrimVal[A,B](extract: (A, Int) => Option[B], mk: B => PrimVal)(a: A, memory: Memory)(v: Val) = v match {
-        case x: PrimVal => Some(x)
-        case ArgRef(n) => extract(a, n).map(mk)
-        case MemRef(name) => memory.memory.get(name)
-        case _ => None
+    private def fromDefaultSend(x: DefaultOscSend) = x match {
+        case OscBoolean(addr) => Msg(addr, List(ArgRef(1)))
+        case OscInt(addr) => Msg(addr, List(ArgRef(1)))
+        case OscFloat(addr, _) => Msg(addr, List(ArgRef(1)))        
     }
 
-    def toPrimVal(a: Float, memory: Memory)(v: Val) = genToPrimVal[Float,Float]((a, n) => if (n == 1) Some(a) else None, FloatVal)(a, memory)(v)
-    def toPrimVal(a: Boolean, memory: Memory)(v: Val) = genToPrimVal[Boolean,Boolean]((a, n) => if (n == 1) Some(a) else None, BooleanVal)(a, memory)(v)
-    def toPrimVal(a: String, memory: Memory)(v: Val) = genToPrimVal[String,String]((a, n) => if (n == 1) Some(a) else None, StringVal)(a, memory)(v)
-    def toPrimVal(a: Int, memory: Memory)(v: Val) = genToPrimVal[Int,Int]((a, n) => if (n == 1) Some(a) else None, IntVal)(a, memory)(v)
+    private def buttonDefaultSend(x: DefaultOscSend) = x match {
+        case OscBoolean(addr) => Msg(addr, List(BooleanVal(true)))
+    }
+
+    def toSpecBoolean: SpecAct[Boolean] = 
+        SpecAct[Boolean](getDefaultSendList(fromDefaultSend), valueMap.map(Utils.toBooleanMap))
+
+    def toSpecInt: SpecAct[Int] = 
+        SpecAct[Int](getDefaultSendList(fromDefaultSend), valueMap.map(Utils.toIntMap))
 }
 
-case class SpecAct[A](single: Option[List[Msg]], valueMap: Option[Map[A,List[Msg]]], defaultSend: Option[DefaultOscSend] = None) {
-    def act(a: A, memory: Memory, osc: Osc) = primMsgs(a, memory).foreach(_.send(osc))
 
-    private def primMsgs(a: A, memory: Memory): List[PrimMsg] = ???
+object Memory {
+    def init = Memory(Map[String,Object]())
+}
+
+case class Memory(var memory: Map[String, Object]) {
+    def get(name: String) = memory.get(name)
+}
+
+case class SpecAct[A](msgList: List[Msg], valueMap: Option[Map[A,List[Msg]]]) {
+    def act(a: A, st: St)(implicit codec: MessageCodec[A]) = {
+        val osc = st.osc
+        val memory = st.memory
+        msgList.foreach(sendMsg(a, memory, osc))
+        valueMap.foreach(m => m.get(a).foreach(xs => xs.foreach(msg => sendMsg(a, memory, osc)(msg)(codec))))
+    } 
+
+    private def sendMsg(a: A, memory: Memory, osc: Osc)(msg: Msg)(implicit codec: MessageCodec[A]) {
+        PrimMsg.fromMsg[A](a, memory)(msg)(codec).foreach(_.send(osc))
+    }
 }
 
 case class Msg(oscAddress: OscAddress, args: List[Val])
 
-case class PrimMsg(oscAddress: OscAddress, args: List[PrimVal]) {
-    def send(osc: Osc): Unit = ???
+object PrimMsg {
+    def fromMsg[A](a: A, memory: Memory)(msg: Msg)(implicit codec: MessageCodec[A]): Option[PrimMsg] = Utils.traverseOption(msg.args)(_.getPrimVal(a, memory)(codec)).map(primVals => PrimMsg(msg.oscAddress, primVals))
+}
+
+case class PrimMsg(oscAddress: OscAddress, args: List[Object]) {
+    def send(osc: Osc): Unit = {
+        println(s"${oscAddress.clientId} ${oscAddress.address} ${args}")
+        osc.dynamicSend(oscAddress, args)
+    }
 }
 
 object Msg {
@@ -60,7 +100,23 @@ object Msg {
     } yield Msg(addr, vals)
 }
 
-trait Val
+trait Val {
+    def getPrimVal[A](a: A, memory: Memory)(implicit codec: MessageCodec[A]): Option[Object] = this match {
+        case ArgRef(nHuman) => {
+            val n = nHuman - 1
+            val list = codec.toMessage(a)
+            if (n < list.size) Some(list(n)) else None
+        }
+        case MemRef(name) => memory.get(name)
+        case other => Some { other match {
+            case IntVal(n)     => n.asInstanceOf[Object]
+            case FloatVal(f)   => f.asInstanceOf[Object]
+            case StringVal(s)  => s.asInstanceOf[Object]
+            case BooleanVal(b) => b.asInstanceOf[Object]
+        }}
+    }
+
+}
 trait PrimVal
 
 case class IntVal(value: Int) extends Val with PrimVal
@@ -87,7 +143,7 @@ object Act {
         val acts = m.toList
             .filter(x => x._1.startsWith("act") && x._2.isList)
             .map({ case (name, body) => (name.drop(3).trim, body) })
-        if (acts.isEmpty) None
+        if (acts.isEmpty) Some(Act(None, None))
         else {
             val (singles, values) = acts.partition(x => x._1 == "")
             Some(Act(someIfNotEmpty(singles.map(_._2), mkSingles), someIfNotEmpty(values, mkValues)))

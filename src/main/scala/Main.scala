@@ -14,13 +14,15 @@ import event._
 import dragon.osc.Osc
 import dragon.osc.input.SetupOscServer
 import dragon.osc.readargs.ReadArgs
+import dragon.osc.act.{Memory, St}
 
 object App {
 
   def main(rawArgs: Array[String]) {  
     val args = ReadArgs(rawArgs)
     val osc = Osc(args)
-    val (wins, inputBase) = Convert.readFile(osc, args.filename)    
+    var memory = Memory.init
+    val (wins, inputBase) = Convert.readFile(St(osc, memory), args.filename)    
     osc.addListeners(inputBase)
 
     wins.zipWithIndex.foreach { case (window, ix) => { 
