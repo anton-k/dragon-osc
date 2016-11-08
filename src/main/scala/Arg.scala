@@ -5,6 +5,8 @@ import collection.JavaConversions._
 import scala.util.Try
 import dragon.osc.const.Names
 import dragon.osc.act._
+import dragon.osc.color._
+import java.awt.Color
 
 
 package scala.swing.audio.parse {
@@ -195,8 +197,8 @@ trait Sym {
             case _ => None
         }
 
-    def isArgList[A](str: String)(args: Arg[A]) = {
-        isNameList(str).flatMap { xs => args.on(xs) }
+    def isArgList[A](settings: Settings, str: String)(args: Arg[A]) = {
+        isNameList(str).flatMap { xs => args.on(ArgSt(settings, xs)) }
     }
 
     def floatValue[A](name: String, mk: (Option[Float], Option[String], OscFloat) => A): Option[A] = this.isArgList(name) {
@@ -264,7 +266,9 @@ case class SetInitInt(init: Int) extends SetParam
 case class SetTitle(title: String) extends SetParam
 case class SetOscClient(clientId: Int) extends SetParam
 
-case class Arg[+A](state: State[List[UiDecl],Option[A]]) { self =>
+case class ArgSt(settings: Settings, args: List[UiDecl])
+
+case class Arg[+A](state: State[ArgSt,Option[A]]) { self =>
     def map[B](f: A => B) = Arg(this.state.map(x => x.map(f)))
 
     def flatMap[B](f: A => Arg[B]) = Arg[B]{ this.state.flatMap { ma => ma match {
@@ -275,15 +279,23 @@ case class Arg[+A](state: State[List[UiDecl],Option[A]]) { self =>
 
     def filter[S >: A](pred: S => Boolean): Arg[S] = Arg[S]{ this.state.map(x => x.filter(pred)) }
 
-    def on(argList: List[UiDecl]): Option[A] = {
-        val res = this.state.run(argList)
-        if (res._2.isEmpty) res._1 else None
+    def on(st: ArgSt): Option[A] = {
+        val res = this.state.run(st)
+        if (res._2.args.isEmpty) res._1 else None
     }
+
+    def withSettings[B >: A](recover: Settings => B) = Arg[B] { (st: ArgSt) => {
+        val (res, st2) = self.state.run(st)
+        res match {
+            case Some(a) => (res, st2)
+            case None    => (Some(recover(st2.settings)), st2)
+        }
+    }}
 
     def orElse: Arg[Option[A]] = Arg(this.state.map(x => Some(x)))
 
-    def ||[B >: A](that: Arg[B]) = Arg[B] { new State[List[UiDecl],Option[B]] {
-        def run(s1: List[UiDecl]) = {
+    def ||[B >: A](that: Arg[B]) = Arg[B] { new State[ArgSt,Option[B]] {
+        def run(s1: ArgSt) = {
             val (optA, s2) = self.state.run(s1)
             optA match {
                 case Some(a) => (optA, s2)
@@ -297,15 +309,15 @@ case class Arg[+A](state: State[List[UiDecl],Option[A]]) { self =>
             case Some(x) => Some(x)
         })
 
-    def eval(xs: List[UiDecl]): Option[A] = 
-        state.eval(xs)
+    def eval(settings: Settings, xs: List[UiDecl]): Option[A] = 
+        state.eval(ArgSt(settings, xs))
 
-    def eval(x: UiDecl): Option[A] = x match {
-        case UiList(xs) => eval(xs)
+    def eval(settings: Settings, x: UiDecl): Option[A] = x match {
+        case UiList(xs) => eval(settings, xs)
         case _          => None
     }
 
-    def eval(raw: String): Option[A] = eval(UiDecl(Yaml.loadString(raw)))
+    def eval(raw: String): Option[A] = eval(Settings(), UiDecl(Yaml.loadString(raw)))
 }
 
 
@@ -343,9 +355,15 @@ case class OscBoolean(oscAddress: OscAddress) extends DefaultOscSend
 case class OscInt(oscAddress: OscAddress) extends DefaultOscSend
 
 object Arg {
+    def onList[A](f: List[UiDecl] => (Option[A], List[UiDecl])): Arg[A] = Arg(new State[ArgSt,Option[A]] { 
+        def run(s: ArgSt) = {
+            val (res, args2) = f(s.args)
+            (res, s.copy(args = args2))
+        } 
+    })    
 
-    def apply[A](f: List[UiDecl] => (Option[A], List[UiDecl])): Arg[A] = Arg(new State[List[UiDecl],Option[A]] { 
-        def run(s: List[UiDecl]) = f(s) 
+    def apply[A](f: ArgSt => (Option[A], ArgSt)): Arg[A] = Arg(new State[ArgSt,Option[A]] { 
+        def run(s: ArgSt) = f(s) 
     })
     
     def pair[A,B](ma: Arg[A], mb: Arg[B]): Arg[(A,B)] = for {
@@ -353,10 +371,10 @@ object Arg {
         b <- mb
     } yield (a, b)
 
-    def many[A](ma: Arg[A]): Arg[List[A]] = Arg { new State[List[UiDecl],Option[List[A]]] {
-        def run(xs: List[UiDecl]) = {
+    def many[A](ma: Arg[A]): Arg[List[A]] = Arg { new State[ArgSt,Option[List[A]]] {
+        def run(xs: ArgSt) = {
             val (a, rest) = ma.state.run(xs)
-            if (rest.isEmpty || xs.length == rest.length) {
+            if (rest.args.isEmpty || xs.args.length == rest.args.length) {
                 a match {
                     case None => (Some(Nil), rest)
                     case Some(x) => (Some(List(x)), rest)
@@ -378,21 +396,21 @@ object Arg {
     }}
 
     
-    def int: Arg[Int] = Arg{ xs => 
+    def int: Arg[Int] = Arg.onList { xs => 
         xs match {
             case UiInt(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
         }
     } 
 
-    def boolean: Arg[Boolean] = Arg{ xs => 
+    def boolean: Arg[Boolean] = Arg.onList { xs => 
         xs match {
             case UiBoolean(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
         }
     }
 
-    def intList: Arg[List[Int]] = Arg{ xs => 
+    def intList: Arg[List[Int]] = Arg.onList { xs => 
         xs match {
             case UiIntList(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
@@ -401,7 +419,7 @@ object Arg {
 
     def intListOrEmpty: Arg[List[Int]] = intList.getOrElse(List())
 
-    def float: Arg[Float] = Arg{ xs => 
+    def float: Arg[Float] = Arg.onList { xs => 
         xs match {
             case UiFloat(n) :: rest => (Some(n), rest)
             case UiInt(n)   :: rest => (Some(n.toFloat), rest)
@@ -411,14 +429,14 @@ object Arg {
 
     def float2: Arg[(Float, Float)] = pair(float, float)
 
-    def string: Arg[String] = Arg{ xs => 
+    def string: Arg[String] = Arg.onList { xs => 
         xs match {
             case UiString(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
         }
     }
 
-    def stringList: Arg[List[String]] = Arg{ xs => 
+    def stringList: Arg[List[String]] = Arg.onList { xs => 
         xs match {
             case UiStringList(n) :: rest => (Some(n), rest)
             case _  => (None, xs)
@@ -427,24 +445,44 @@ object Arg {
 
     def stringListOrEmpty: Arg[List[String]] = stringList.getOrElse(List())
 
-    def oscAddress: Arg[OscAddress] = Arg{ xs => 
-        xs match {
-            case UiOscAddress(n) :: rest => (Some(n), rest)
-            case _  => (None, xs)
-        }
-    }
-
-    def memRef: Arg[String] = Arg{ xs =>
+    def memRef: Arg[String] = Arg.onList { xs =>
         xs match {
             case UiRef(str) :: rest => (Some(str), rest)
             case _ => (None, xs)
         }
     }
 
-    def argRef: Arg[Int] = Arg{ xs =>
+    def argRef: Arg[Int] = Arg.onList { xs =>
         xs match {
             case UiArgRef(n) :: rest => (Some(n), rest)
             case _ => (None, xs)
+        }
+    }
+
+    def initBoolean: Arg[Boolean] = Arg.boolean.withSettings { settings => 
+        settings.initBoolean.getOrElse(false)
+    }
+
+    def initInt: Arg[Int] = Arg.int.withSettings { settings =>
+        settings.initInt.getOrElse(1)
+    }
+
+    def initFloat: Arg[Float] = Arg.float.withSettings { settings =>
+        settings.initFloat.getOrElse(0.5f)
+    }
+
+    def initFloat2: Arg[(Float, Float)] = Arg.float2.withSettings { settings =>
+        settings.initFloat.map(x => (x, x)).getOrElse((0.5f, 0.5f))
+    }
+
+    def color: Arg[Color] = Arg.string.withSettings { settings =>
+        settings.initColor.getOrElse("blue")
+    }.map(Palette.palette)
+
+    def oscAddress: Arg[OscAddress] = Arg { st => 
+        st.args match {
+            case UiOscAddress(n) :: rest => (Some(st.settings.setClientId(n)), st.copy(args = rest))
+            case _  => (None, st)
         }
     }
 }

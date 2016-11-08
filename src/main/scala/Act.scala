@@ -29,15 +29,19 @@ private object Utils {
 case class Act(single: Option[List[Msg]], valueMap: Option[Map[String, List[Msg]]], defaultSend: Option[DefaultOscSend] = None) {
     def withDefaultSend(x: Option[DefaultOscSend]) = this.copy(defaultSend = x)
     def mapDefaultSend(f: DefaultOscSend => DefaultOscSend) = this.copy(defaultSend = this.defaultSend.map(f))
-
-    def compileDial(base: InputBase)(x: Float): Unit = ???
+    
     def compileToggle: SpecAct[Boolean] = toSpecBoolean 
     def compileButton: SpecAct[Boolean] = 
         SpecAct[Boolean](getDefaultSendList(buttonDefaultSend), None)
 
+    def compileIntDial: SpecAct[Int] = compileInt
+
     def compileInt: SpecAct[Int] = 
         SpecAct[Int](getDefaultSendList(fromDefaultSend), valueMap.map(Utils.toIntMap))    
-    
+
+    def compileFloat: SpecAct[Float] = 
+        SpecAct[Float](getDefaultSendList(buttonDefaultSend), None)
+
     private def getDefaultSendList(onDefault: DefaultOscSend => Msg) = 
         defaultSend.map(onDefault).toList ++ single.getOrElse(Nil)
 
