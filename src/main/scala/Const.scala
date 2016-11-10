@@ -34,3 +34,24 @@ object Names {
     val save = "save"
     val run  = "run"
 }
+
+object Attributes {
+    val color = "color"
+    val init  = "init"
+    val text = "text"
+    val client = "client"
+    val path = "path"
+    val args = "args"
+    val range = "range"
+}
+
+object Defaults {
+    val int = 0
+    val float = 0.5f
+    val boolean = false
+    val string = ""
+    val float2 = (float, float)
+    val range = (0f, 1f)
+    val color = "blue"
+    val rangeInt = (0, 100)
+}

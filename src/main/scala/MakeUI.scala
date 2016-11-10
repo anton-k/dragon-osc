@@ -12,6 +12,7 @@ import dragon.osc.Osc
 import dragon.osc.input._
 import dragon.osc.act.{Act, SpecAct, St}
 
+/*
 package scala.swing.audio.convert {    
 
     case class Window(title: Option[String], size: Option[(Int, Int)], content: Component)
@@ -217,3 +218,4 @@ package scala.swing.audio.convert {
     }
 }
  
+ */

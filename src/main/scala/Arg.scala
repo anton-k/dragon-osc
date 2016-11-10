@@ -1,13 +1,11 @@
-import org.yaml.snakeyaml.Yaml
-import java.io.{FileInputStream, File}
-import collection.JavaConverters._
-import collection.JavaConversions._ 
-import scala.util.Try
+
 import dragon.osc.const.Names
 import dragon.osc.act._
 import dragon.osc.color._
 import java.awt.Color
-
+import dragon.osc.state._
+import dragon.osc.parse.yaml.ReadYaml
+import scala.util.Try
 
 package scala.swing.audio.parse {
 
@@ -20,7 +18,7 @@ object UiDecl {
         val obj = x
     }
 
-    def loadFile(filename: String) = UiDecl(Yaml.loadFile(filename))   
+    def loadFile(filename: String) = UiDecl(ReadYaml.loadFile(filename))   
 }
 
 trait UiDecl {
@@ -36,7 +34,7 @@ class UiList(val obj: Object) extends UiDecl
 
 object UiList {
     def unapply(decl: UiDecl): Option[List[UiDecl]] = 
-        Yaml.readList(decl.obj).map(x => x.map(y => UiDecl(y)))
+        ReadYaml.readList(decl.obj).map(x => x.map(y => UiDecl(y)))
 } 
 
 class UiIntList(val obj: Object) extends UiDecl
@@ -74,10 +72,10 @@ object UiStringList {
 class UiSym(val obj: Object) extends UiDecl
 
 object UiSym {
-    def unapply(decl: UiDecl): Option[Sym] = Yaml.readMap(decl.obj).map { x =>        
+    def unapply(decl: UiDecl): Option[Sym] = ReadYaml.readMap(decl.obj).map { x =>        
         val (name, obj) = x.toList.head
         val (widgetName, id) = splitId(name)
-        val act = Act.fromMap(x.mapValues(x => UiDecl(x)))
+        val act = Act.fromMap(Settings(), x.mapValues(x => UiDecl(x)))
         Sym(widgetName, id, UiDecl(obj), act)
     }
 
@@ -93,7 +91,7 @@ object UiSym {
 class UiMap(val obj: Object) extends UiDecl
 
 object UiMap {
-    def unapply(decl: UiDecl): Option[Map[String,UiDecl]] = Yaml.readMap(decl.obj).map { x =>
+    def unapply(decl: UiDecl): Option[Map[String,UiDecl]] = ReadYaml.readMap(decl.obj).map { x =>
         x.map { case (name, x) => (name, UiDecl(x)) }
     }
 }
@@ -102,7 +100,7 @@ class UiAct(val obj: Object) extends UiDecl
 
 object UiAct {
     def unapply(decl: UiDecl): Option[Act] = decl match {
-        case UiMap(m) => Act.fromMap(m)
+        case UiMap(m) => Act.fromMap(Settings(), m)
         case _        => None
     }
 }
@@ -110,13 +108,13 @@ object UiAct {
 class UiInt(val obj: Object) extends UiDecl
 
 object UiInt {
-    def unapply(decl: UiDecl): Option[Int] = Yaml.readInt(decl.obj)    
+    def unapply(decl: UiDecl): Option[Int] = ReadYaml.readInt(decl.obj)    
 }
 
 class UiFloat(val obj: Object) extends UiDecl
 
 object UiFloat {
-    def unapply(decl: UiDecl): Option[Float] = Yaml.readFloating(decl.obj)    
+    def unapply(decl: UiDecl): Option[Float] = ReadYaml.readFloating(decl.obj)    
 }
 
 class UiOscAddress(val obj: Object) extends UiDecl
@@ -164,13 +162,13 @@ object UiString {
 class UiAnyString(val obj: Object) extends UiDecl
 
 object UiAnyString {
-    def unapply(decl: UiDecl): Option[String] = Yaml.readString(decl.obj)
+    def unapply(decl: UiDecl): Option[String] = ReadYaml.readString(decl.obj)
 }
 
 class UiBoolean(val obj: Object) extends UiDecl
 
 object UiBoolean {
-    def unapply(decl: UiDecl): Option[Boolean] = Yaml.readBoolean(decl.obj)    
+    def unapply(decl: UiDecl): Option[Boolean] = ReadYaml.readBoolean(decl.obj)    
 }
 
 
@@ -201,7 +199,7 @@ trait Sym {
         isNameList(str).flatMap { xs => args.on(ArgSt(settings, xs)) }
     }
 
-    def floatValue[A](name: String, mk: (Option[Float], Option[String], OscFloat) => A): Option[A] = this.isArgList(name) {
+    def floatValue[A](settings: Settings, name: String, mk: (Option[Float], Option[String], OscFloat) => A): Option[A] = this.isArgList(settings, name) {
         for {
             init   <- Arg.float.orElse
             color  <- Arg.string.orElse
@@ -210,7 +208,7 @@ trait Sym {
         } yield mk(init, color, OscFloat(osc, range))
     }
 
-    def floatRangeValue[A](name: String, mk: ((Float,Float), Option[String], OscFloat) => A): Option[A] = this.isArgList(name) {
+    def floatRangeValue[A](settings: Settings, name: String, mk: ((Float,Float), Option[String], OscFloat) => A): Option[A] = this.isArgList(settings, name) {
         for {
             init  <- Arg.float2
             color <- Arg.string.orElse
@@ -257,6 +255,34 @@ object Sym {
     }    
 }
 
+
+case class Settings(
+    initColor: Option[String] = None, 
+    initFloat: Option[Float] = None, 
+    initBoolean: Option[Boolean] = None, 
+    initInt: Option[Int] = None,
+    title: Option[String] = None,
+    oscClient: Option[Int] = None) {
+
+    def setClientId(osc: OscAddress): OscAddress = oscClient match {
+        case None => osc
+        case Some(n) => osc.copy(clientId = Some(OutsideClientId(n.toString)))
+    }
+
+    def setClientId(osc: OscFloat): OscFloat = osc.copy(oscAddress = setClientId(osc.oscAddress))    
+    def setClientId(osc: OscFloat2): OscFloat2 = osc.copy(oscAddress = setClientId(osc.oscAddress))    
+    def setClientId(osc: OscBoolean): OscBoolean = osc.copy(oscAddress = setClientId(osc.oscAddress))    
+    def setClientId(osc: OscInt): OscInt = osc.copy(oscAddress = setClientId(osc.oscAddress))   
+
+    def setClientId(osc: DefaultOscSend): DefaultOscSend = osc match {
+        case x: OscBoolean => setClientId(x)
+        case x: OscFloat   => setClientId(x)
+        case x: OscFloat2  => setClientId(x)
+        case x: OscInt     => setClientId(x)
+    }
+
+    def setClientId(act: Option[Act]): Option[Act] = act.map { a => a.mapDefaultSend(x => this.setClientId(x)) }
+}
 
 trait SetParam
 case class SetColor(color: String) extends SetParam
@@ -317,7 +343,7 @@ case class Arg[+A](state: State[ArgSt,Option[A]]) { self =>
         case _          => None
     }
 
-    def eval(raw: String): Option[A] = eval(Settings(), UiDecl(Yaml.loadString(raw)))
+    def eval(raw: String): Option[A] = eval(Settings(), UiDecl(ReadYaml.loadString(raw)))
 }
 
 
@@ -485,54 +511,6 @@ object Arg {
             case _  => (None, st)
         }
     }
-}
-
-object Yaml {
-    def loadFile(filename: String) = {
-        val input = new FileInputStream(new File(filename))
-        val yaml = new Yaml()
-        val res = yaml.load(input)
-        input.close()
-        res
-    }
-
-    def loadString(str: String) = {
-        val yaml = new Yaml()
-        yaml.load(str)
-    }
-
-    def readList(x: Object) = Try {
-        val q: collection.mutable.Seq[Object] = x.asInstanceOf[java.util.List[Object]]
-        q.toList
-    }.toOption
-
-    def readMap(x: Object) = Try {
-        val q: collection.mutable.Map[String,Object] = x.asInstanceOf[java.util.Map[String,Object]]
-        q.toMap
-    }.toOption   
-
-    def readInt(x: Object) = Try {
-        x.asInstanceOf[Int]
-    }.toOption   
-
-    def readFloating(x: Object) = 
-        readDouble(x).map(_.toFloat) orElse readFloat(x)
-
-    def readDouble(x: Object) = Try {
-        x.asInstanceOf[Double]
-    }.toOption
-
-    def readFloat(x: Object) = Try {
-        x.asInstanceOf[Float]
-    }.toOption
-
-    def readString(x: Object) = Try {
-        x.asInstanceOf[String]
-    }.toOption
-
-    def readBoolean(x: Object) = Try {
-        x.asInstanceOf[Boolean]
-    }.toOption
 }
 
 }

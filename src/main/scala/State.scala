@@ -1,4 +1,6 @@
 
+package dragon.osc.state
+
 object State {
     def pure[S,A](a: A): State[S,A] = new State[S,A] {
         def run(s: S) = (a, s)

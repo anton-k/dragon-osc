@@ -19,7 +19,7 @@ object ReadArgs {
 
         val filename = Try {
                 args(1)
-            } getOrElse { Utils.resourceFile("/ui-easy.yaml") }
+            } getOrElse { Utils.resourceFile("/ui.yaml") }
 
         val outPort = 7711
         Args(inPort, outPort, filename)

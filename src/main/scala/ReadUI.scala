@@ -2,8 +2,11 @@
 import scala.swing.audio.parse.arg._
 import dragon.osc.const.Names
 import dragon.osc.act.{Act, SpecAct}
+import dragon.osc.state._
 
 package scala.swing.audio.parse {
+
+/*
 
 object UiDefaults {
     val defColor = "blue"
@@ -513,6 +516,7 @@ object ReadUI {
         case UiString(name) => loadAlias(name)
     }
 }
+*/
 
 }
 

@@ -1,0 +1,22 @@
+- hor:        
+    - int-dial: 
+        init: 1
+        min:  0
+        max:  10
+        color: olive
+        act:
+          - case:
+              value: 1
+              msg: 
+                client: 
+                addr:   
+
+
+    - knob:
+
+
+
+
+
+- int-dial: [4, 0, 10]
+- int-dial: [4, 0, 10]

@@ -1,6 +1,6 @@
 package dragon.osc.act
 
-import scala.swing.audio.parse.arg.{Arg, DefaultOscSend, OscBoolean, OscInt, OscFloat, Sym, UiSym, OscAddress, UiDecl, UiList}
+import scala.swing.audio.parse.arg.{Arg, Settings, DefaultOscSend, OscBoolean, OscInt, OscFloat, Sym, UiSym, OscAddress, UiDecl, UiList}
 import dragon.osc.const.Names
 import dragon.osc.input.InputBase
 import dragon.osc.Osc
@@ -143,14 +143,14 @@ object Val {
 }
 
 object Act {
-    def fromMap(m: Map[String, UiDecl]): Option[Act] = {
+    def fromMap(settings: Settings, m: Map[String, UiDecl]): Option[Act] = {
         val acts = m.toList
             .filter(x => x._1.startsWith("act") && x._2.isList)
             .map({ case (name, body) => (name.drop(3).trim, body) })
         if (acts.isEmpty) Some(Act(None, None))
         else {
             val (singles, values) = acts.partition(x => x._1 == "")
-            Some(Act(someIfNotEmpty(singles.map(_._2), mkSingles), someIfNotEmpty(values, mkValues)))
+            Some(Act(someIfNotEmpty(singles.map(_._2), mkSingles(settings)), someIfNotEmpty(values, mkValues(settings))))
         }
     }
 
@@ -158,22 +158,22 @@ object Act {
         if (xs.isEmpty) None
         else Some(f(xs))
 
-    private def mkSingles(xs: List[UiDecl]): List[Msg] = 
-        parseActionList(xs.flatMap { x => x match {
+    private def mkSingles(settings: Settings)(xs: List[UiDecl]): List[Msg] = 
+        parseActionList(settings, xs.flatMap { x => x match {
             case UiList(ys) => ys
             case _ => Nil
         }})
 
-    private def mkValues(xs: List[(String, UiDecl)]): Map[String, List[Msg]] = 
+    private def mkValues(settings: Settings)(xs: List[(String, UiDecl)]): Map[String, List[Msg]] = 
         xs.flatMap { x => x match {
-            case (name, UiList(acts)) => List((name, parseActionList(acts)))
+            case (name, UiList(acts)) => List((name, parseActionList(settings, acts)))
             case _ => Nil
         }}.toMap
 
-    private def parseActionList(xs: List[UiDecl]) = xs.map(parseAction).flatten
+    private def parseActionList(settings: Settings, xs: List[UiDecl]) = xs.map(a => parseAction(settings, a)).flatten
 
-    private def parseAction(x: UiDecl): Option[Msg] = x match {
-        case UiList(xs) => Msg.read.eval(xs)
+    private def parseAction(settings: Settings, x: UiDecl): Option[Msg] = x match {
+        case UiList(xs) => Msg.read.eval(settings, xs)
         case _ => None
     }
 }

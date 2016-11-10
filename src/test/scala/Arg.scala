@@ -1,6 +1,7 @@
 import org.scalatest._
 import scala.swing.audio.parse.arg._
 import dragon.osc.act._
+import dragon.osc.parse.yaml.ReadYaml
 
 
 class TestUtils
@@ -91,8 +92,8 @@ class MsgParseTest extends FunSuite {
 }
 
 class ActParseTest extends FunSuite {
-    def parse(str: String): Option[Act] = UiDecl(Yaml.loadString(str)) match {
-        case UiMap(m) => Act.fromMap(m)
+    def parse(str: String): Option[Act] = UiDecl(ReadYaml.loadString(str)) match {
+        case UiMap(m) => Act.fromMap(Settings(), m)
         case _ => None
     }
 
@@ -100,7 +101,7 @@ class ActParseTest extends FunSuite {
     val msg2 = Msg(OscAddress("/msg2"), List(StringVal("msg")))
 
     test("Empty act list") { assert {
-        parse("{dial: []}") == None
+        parse("{dial: []}") == Some(Act(None, None, None))
     }}
 
     val actList = List(msg1, msg2)
