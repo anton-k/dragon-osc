@@ -43,6 +43,7 @@ object Attributes {
     val path = "path"
     val args = "args"
     val range = "range"
+    val id = "id"
 }
 
 object Defaults {

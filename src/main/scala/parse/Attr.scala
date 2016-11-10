@@ -49,6 +49,7 @@ object Attr {
     def color = attr[String](Attributes.color, readString, Defaults.color)
     def text = attr[String](Attributes.text, readString, Defaults.string)
     def rangeInt = attr[(Int, Int)](Attributes.range, readRangeInt, Defaults.rangeInt)
+    def id = attr[Option[String]](Attributes.id, x => Some(readString(x)), None)
 
     //---------------------------------------------------------
     // field readers
