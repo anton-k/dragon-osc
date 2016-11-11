@@ -4,6 +4,7 @@ import dragon.osc.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.yaml._
 import dragon.osc.parse.ui._
+import dragon.osc.parse.widget._
 
 class PrimWidgets extends FunSuite {
     import Read._
@@ -45,4 +46,21 @@ class PrimWidgets extends FunSuite {
         check("label: { color: orange, text: start }", label,
             Some(Label("orange", "start")))
     }
+}
+
+class ParseGenericParams extends FunSuite {
+    import Read._
+
+    def check[A](str: String, w: Widget[Sym], res: Option[Elem]) = 
+        assert(Lang.read(str).flatMap(x => fromSym(w).run(x)) == res)
+
+
+    test ("widget with no params") {
+        check("dial: { color: red }", dial, Some(Elem(Dial(Defaults.float, "red"), Param(None, None))))
+    }
+
+    test ("widget with id") {
+        check( "{ dial: { color: red, init: 0.0 }, id: amp }", dial, Some(Elem(Dial(0.0f, "red"), Param(Some("amp"), None))))
+    }
+
 }

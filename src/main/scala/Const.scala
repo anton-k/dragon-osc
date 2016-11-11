@@ -44,6 +44,8 @@ object Attributes {
     val args = "args"
     val range = "range"
     val id = "id"
+    val default = "default"   
+    val case = "case"
 }
 
 object Defaults {

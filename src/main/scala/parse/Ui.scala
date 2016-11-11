@@ -3,21 +3,14 @@ package dragon.osc.parse.ui
 import dragon.osc.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
+import dragon.osc.parse.send._
+import dragon.osc.parse.widget._
 
 trait Ui
 
-case class Elem(sym: Sym, id: Option[String], osc: Option[Send]) extends Ui
+case class Elem(sym: Sym, param: Param) extends Ui
 
-case class Send(msg: List[Msg], guard: Option[Guard])
-case class Msg(client: String, addr: String, args: List[Arg])
-
-trait Arg
-case class PrimArg(value: Prim) extends Arg
-case class MemRef(name: String) extends Arg
-case class ArgRef(id: Int) extends Arg
-
-trait Guard
-case class ArgEquals(value: Prim) extends Guard
+case class Param(id: Option[String], osc: Option[Send])
 
 // ----------------------------------------
 // compound widgets
@@ -51,51 +44,8 @@ object Read {
         case _ => None
     }
 
-    object Widget {
-        def any[A](xs: List[Widget[A]]): Widget[A] = xs.tail.foldLeft(xs.head)(_ orElse _)
-
-        def ap[A,B](mf: Widget[A => B], ma: Widget[A]): Widget[B] = new Widget[B] {
-            def run(obj: Lang) = (mf.run(obj), ma.run(obj)) match {
-                case (Some(f), Some(a)) => Some(f(a))
-                case _ => None
-            }
-        }
-
-        def lift2[A,B,C](f: (A,B) => C, ma: Widget[A], mb: Widget[B]): Widget[C] = {
-            ap(ma.map(a => (b: B) => f(a, b)), mb)
-        }
-
-        def fromAttr[A](a: Attr[Option[A]]): Widget[A] = new Widget[A] {
-            def run(obj: Lang) = a.run(obj)
-        }
-
-        def pure[A](a: A) = new Widget[A] {
-            def run(obj: Lang) = Some(a)
-        }
-    }
-
-    trait Widget[+A] { self =>
-        def run(obj: Lang): Option[A]
-
-        def orElse[B >: A](that: Widget[B]): Widget[B] = new Widget[B] {
-            def run(obj: Lang) = self.run(obj) orElse that.run(obj)
-        }   
-
-        def map[B](f: A => B): Widget[B] = new Widget[B] {
-            def run(obj: Lang) = self.run(obj).map(f)
-        }
-
-        def withOption: Widget[Option[A]] = new Widget[Option[A]] {
-            def run(obj: Lang) = Some(self.run(obj))
-        }
-    }
-
-    def primWidget(name: String, attr: Attr[Sym]) = new Widget[Sym] {
-        def run(obj: Lang) = getKey(obj, name).map(attr.run)
-    }
-
     def fromSym(sym: Widget[Sym]): Widget[Ui] = 
-        Widget.lift2( (s: Sym, gens: (Option[String], Option[Send])) => Elem(s, gens._1, gens._2), sym, genericParams)
+        Widget.lift2(Elem, sym, param)
    
     val dial    = primWidget(Names.dial,    lift2(Dial,   initFloat, color))
     val hfader  = primWidget(Names.hfader,  lift2(HFader, initFloat, color))
@@ -113,14 +63,16 @@ object Read {
             case ListSym(xs) => Some(mk(xs.map(ui.run).flatten))
             case _ => None
         }
-    }    
+    }  
+
+    def primWidget(name: String, attr: Attr[Sym]) = new Widget[Sym] {
+        def run(obj: Lang) = getKey(obj, name).map(attr.run)
+    }     
 
     val widgets = List(dial, hfader, vfader, toggle, intDial, label, button, hor, ver)
 
-    val send: Widget[Option[Send]] = Widget.pure(None)
-
-    def genericParams: Widget[(Option[String], Option[Send])] = {        
-        Widget.lift2( (a: Option[String], b: Option[Send]) => (a, b), Widget.fromAttr(id).withOption, send)
+    def param: Widget[Param] = {        
+        Widget.lift2(Param, Widget.fromAttr(id).withOption, Send.read)
     } 
 
     def ui: Widget[Ui] = Widget.any(widgets.map(fromSym))

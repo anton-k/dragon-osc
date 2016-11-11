@@ -14,6 +14,10 @@ trait Attr[A] { self =>
 object Attr {    
     // generic functions
 
+    def pure[A](a: A): Attr[A] = new Attr[A] {
+        def run(obj: Lang) = a
+    }
+
     def ap[A,B](f: Attr[A => B], a: Attr[A]): Attr[B] = new Attr[B] {
         def run(obj: Lang) = f.run(obj)(a.run(obj))
     }
