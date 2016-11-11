@@ -21,6 +21,8 @@ object Widget {
         def run(obj: Lang) = a.run(obj)
     }
 
+    def fromOptionAttr[A](a: Attr[Option[A]]) = fromAttr(a).withOption  
+
     def pure[A](a: A) = new Widget[A] {
         def run(obj: Lang) = Some(a)
     }

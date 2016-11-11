@@ -35,17 +35,18 @@ object Names {
     val run  = "run"
 }
 
-object Attributes {
+object Attributes {    
     val color = "color"
     val init  = "init"
     val text = "text"
+    val msg = "msg"
     val client = "client"
     val path = "path"
     val args = "args"
     val range = "range"
     val id = "id"
     val default = "default"   
-    val case = "case"
+    val msgCase = "case"
 }
 
 object Defaults {
@@ -57,4 +58,6 @@ object Defaults {
     val range = (0f, 1f)
     val color = "blue"
     val rangeInt = (0, 100)
+    val client = "self"
+    val path = "/"
 }

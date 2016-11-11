@@ -54,6 +54,8 @@ object Attr {
     def text = attr[String](Attributes.text, readString, Defaults.string)
     def rangeInt = attr[(Int, Int)](Attributes.range, readRangeInt, Defaults.rangeInt)
     def id = attr[Option[String]](Attributes.id, x => Some(readString(x)), None)
+    def client = attr[String](Attributes.client, readString, Defaults.client)
+    def path = attr[String](Attributes.path, readString, Defaults.path)
 
     //---------------------------------------------------------
     // field readers

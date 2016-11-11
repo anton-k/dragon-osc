@@ -39,11 +39,6 @@ case class Label(color: String, text: String) extends Sym
 object Read {
     import Attr._
 
-    def getKey(obj: Lang, key: String) = obj match {
-        case MapSym(m) => m.get(key)
-        case _ => None
-    }
-
     def fromSym(sym: Widget[Sym]): Widget[Ui] = 
         Widget.lift2(Elem, sym, param)
    
@@ -59,20 +54,20 @@ object Read {
     val ver = listWidget(Names.ver, Ver)
 
     def listWidget[A](key: String, mk: List[Ui] => A) = new Widget[A] {
-        def run(obj: Lang) = getKey(obj, key).flatMap {
+        def run(obj: Lang) = obj.getKey(key).flatMap {
             case ListSym(xs) => Some(mk(xs.map(ui.run).flatten))
             case _ => None
         }
     }  
 
     def primWidget(name: String, attr: Attr[Sym]) = new Widget[Sym] {
-        def run(obj: Lang) = getKey(obj, name).map(attr.run)
+        def run(obj: Lang) = obj.getKey(name).map(attr.run)
     }     
 
     val widgets = List(dial, hfader, vfader, toggle, intDial, label, button, hor, ver)
 
     def param: Widget[Param] = {        
-        Widget.lift2(Param, Widget.fromAttr(id).withOption, Send.read)
+        Widget.lift2(Param, Widget.fromOptionAttr(id), Widget.fromOptionAttr(Send.read))
     } 
 
     def ui: Widget[Ui] = Widget.any(widgets.map(fromSym))
