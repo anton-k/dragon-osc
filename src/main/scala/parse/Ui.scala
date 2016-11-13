@@ -6,6 +6,10 @@ import dragon.osc.parse.attr._
 import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 
+case class App(windows: List[Window])
+case class Window(title: String, size: (Int, Int), tabs: List[Tab]) 
+case class Tab(title: String, content: Ui)
+
 trait Ui
 
 case class Elem(sym: Sym, param: Param) extends Ui
@@ -18,9 +22,6 @@ case class Param(id: Option[String], osc: Option[Send])
 trait Sym
 case class Hor(items: List[Ui]) extends Sym
 case class Ver(items: List[Ui]) extends Sym
-
-case class Tab(pages: List[Page])
-case class Page(title: String, content: Ui)
 
 // ----------------------------------------
 // primitive widgets
