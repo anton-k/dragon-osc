@@ -4,7 +4,20 @@ import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
 
 object Widget {
-    def any[A](xs: List[Widget[A]]): Widget[A] = xs.tail.foldLeft(xs.head)(_ orElse _)
+    def any[A](xs: Stream[Widget[A]]): Widget[A] = new Widget[A] {
+        private def go(obj: Lang, xs: Stream[Widget[A]]): Option[A] = 
+            if (xs.isEmpty) 
+                None
+            else
+                xs match {            
+                    case a #:: as => a.run(obj) match {
+                        case Some(res) => Some(res)
+                        case None => go(obj, as)
+                    }
+                }
+
+        def run(obj: Lang) = go(obj, xs)
+    }
 
     def ap[A,B](mf: Widget[A => B], ma: Widget[A]): Widget[B] = new Widget[B] {
         def run(obj: Lang) = (mf.run(obj), ma.run(obj)) match {

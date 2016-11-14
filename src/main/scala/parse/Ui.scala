@@ -6,14 +6,12 @@ import dragon.osc.parse.attr._
 import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 
-case class App(windows: List[Window])
-case class Window(title: String, size: (Int, Int), tabs: List[Tab]) 
-case class Tab(title: String, content: Ui)
+case class Root(windows: List[Window])
+case class Window(title: String, size: Option[(Int, Int)], content: Ui) 
 
 trait Ui
 
-case class Elem(sym: Sym, param: Param) extends Ui
-
+case class Elem(sym: Sym, param: Param = Param(None, None)) extends Ui
 case class Param(id: Option[String], osc: Option[Send])
 
 // ----------------------------------------
@@ -22,6 +20,11 @@ case class Param(id: Option[String], osc: Option[Send])
 trait Sym
 case class Hor(items: List[Ui]) extends Sym
 case class Ver(items: List[Ui]) extends Sym
+
+case class Tabs(items: List[Page]) extends Sym
+case class Page(title: String, content: Ui)
+object Space extends Sym
+object Glue  extends Sym
 
 // ----------------------------------------
 // primitive widgets
@@ -36,41 +39,64 @@ case class Label(color: String, text: String) extends Sym
 
 // -----------------------------------------
 
-
-object Read {
+object Read {    
     import Attr._
+
+    def emptyUi = Elem(Space, Param(None, None))
 
     def fromSym(sym: Widget[Sym]): Widget[Ui] = 
         Widget.lift2(Elem, sym, param)
    
-    val dial    = primWidget(Names.dial,    lift2(Dial,   initFloat, color))
-    val hfader  = primWidget(Names.hfader,  lift2(HFader, initFloat, color))
-    val vfader  = primWidget(Names.vfader,  lift2(VFader, initFloat, color))
-    val toggle  = primWidget(Names.toggle,  lift3(Toggle, initBoolean, color, text))
-    val intDial = primWidget(Names.intDial, lift3(IntDial, initInt, color, rangeInt))
-    val label   = primWidget(Names.label,   lift2(Label,  color, text))
-    val button  = primWidget(Names.button,  lift2(Button, color, text))
+    def dial    = primWidget(Names.dial,    lift2(Dial,   initFloat, color))
+    def hfader  = primWidget(Names.hfader,  lift2(HFader, initFloat, color))
+    def vfader  = primWidget(Names.vfader,  lift2(VFader, initFloat, color))
+    def toggle  = primWidget(Names.toggle,  lift3(Toggle, initBoolean, color, text))
+    def intDial = primWidget(Names.intDial, lift3(IntDial, initInt, color, rangeInt))
+    def label   = primWidget(Names.label,   lift2(Label,  color, text))
+    def button  = primWidget(Names.button,  lift2(Button, color, text))
 
-    val hor = listWidget(Names.hor, Hor)
-    val ver = listWidget(Names.ver, Ver)
+    def hor = listWidget(Names.hor, Hor)
+    def ver = listWidget(Names.ver, Ver)
 
-    def listWidget[A](key: String, mk: List[Ui] => A) = new Widget[A] {
+    def tabContent: Attr[Option[Ui]] = attr(Names.content, obj => ui.run(obj).map(x => Some(x)), None)
+    def page: Widget[Option[Page]] = primWidget(Names.page, lift2((t: String, optCont: Option[Ui]) => optCont.map(cont => Page(t, cont)), title, tabContent))
+    def tabs = listWidgetBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))  
+
+    def listWidgetBy[A,B](elem: Widget[B])(key: String, mk: List[B] => A) = new Widget[A] {
         def run(obj: Lang) = obj.getKey(key).flatMap {
-            case ListSym(xs) => Some(mk(xs.map(ui.run).flatten))
+            case ListSym(xs) => Some(mk(xs.map(elem.run).flatten))
             case _ => None
         }
     }  
 
-    def primWidget(name: String, attr: Attr[Sym]) = new Widget[Sym] {
+    def listWidget[A](key: String, mk: List[Ui] => A) = listWidgetBy(ui)(key, mk)
+
+    def primWidget[A](name: String, attr: Attr[A]) = new Widget[A] {
         def run(obj: Lang) = obj.getKey(name).map(attr.run)
     }     
 
-    val widgets = List(dial, hfader, vfader, toggle, intDial, label, button, hor, ver)
+    def widgets: Stream[Widget[Sym]] = 
+        dial #:: 
+        hfader #:: 
+        vfader #:: 
+        toggle #:: 
+        intDial #:: 
+        label #:: 
+        hor #:: 
+        ver #:: 
+        tabs #:: 
+        Stream.empty[Widget[Sym]]
 
     def param: Widget[Param] = {        
         Widget.lift2(Param, Widget.fromOptionAttr(id), Widget.fromOptionAttr(Send.read))
     } 
 
     def ui: Widget[Ui] = Widget.any(widgets.map(fromSym))
-}
 
+    def window: Widget[Window] = primWidget(Names.window, lift3(Window, title, size, windowContent))
+
+    def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
+    
+    def root: Widget[Root] = listWidgetBy(window)(Names.app, Root)
+
+}

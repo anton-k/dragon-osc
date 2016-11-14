@@ -18,11 +18,14 @@ object Names {
     val dropDownList = "drop-down-list"
     val textInput = "text-input"
     val tabs = "tabs"
+    val page = "page"
     val window = "window"
     val hor = "hor"
     val ver = "ver"
     val space = "space"
-    val glue = "glue"
+    val glue = "glue"    
+    val content = "content"
+    val app = "app"
 
     val idSet = Set(dial, hfader, vfader, vcheck, hcheck, toggle, multiToggle, xyPad, intDial, hfaderRange, vfaderRange, xyPadRange, dropDownList, textInput, tabs, window)
 
@@ -47,6 +50,8 @@ object Attributes {
     val id = "id"
     val default = "default"   
     val msgCase = "case"
+    val title = "title"
+    val size = "size"
 }
 
 object Defaults {

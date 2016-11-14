@@ -56,6 +56,8 @@ object Attr {
     def id = attr[Option[String]](Attributes.id, x => Some(readString(x)), None)
     def client = attr[String](Attributes.client, readString, Defaults.client)
     def path = attr[String](Attributes.path, readString, Defaults.path)
+    def title = attr[String](Attributes.title, readString, Defaults.string)
+    def size = attr[Option[(Int,Int)]](Attributes.size, readSize, None)
 
     //---------------------------------------------------------
     // field readers
@@ -84,4 +86,6 @@ object Attr {
         case ListSym(List(PrimSym(PrimInt(min)), PrimSym(PrimInt(max)))) => Some((min, max))
         case _ => None
     }
-}
+
+    def readSize(obj: Lang) = readRangeInt(obj).map(x => Some(x))
+} 
