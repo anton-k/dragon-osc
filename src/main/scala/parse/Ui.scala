@@ -40,10 +40,10 @@ case class Label(color: String, text: String) extends Sym
 object Read {    
     import Attr._
 
-    def emptyUi = Elem(Space, Param(None, None))
+    def emptyUi = Ui(Space, Param(None, None))
 
     def fromSym(sym: Widget[Sym]): Widget[Ui] = 
-        Widget.lift2(Elem, sym, param)
+        Widget.lift2(Ui, sym, param)
    
     def dial    = primWidget(Names.dial,    lift2(Dial,   initFloat, color))
     def hfader  = primWidget(Names.hfader,  lift2(HFader, initFloat, color))
