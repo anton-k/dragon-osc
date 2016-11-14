@@ -9,9 +9,7 @@ import dragon.osc.parse.widget._
 case class Root(windows: List[Window])
 case class Window(title: String, size: Option[(Int, Int)], content: Ui) 
 
-trait Ui
-
-case class Elem(sym: Sym, param: Param = Param(None, None)) extends Ui
+case class Ui(sym: Sym, param: Param = Param(None, None))
 case class Param(id: Option[String], osc: Option[Send])
 
 // ----------------------------------------
