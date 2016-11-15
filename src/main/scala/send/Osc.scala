@@ -1,4 +1,4 @@
-package dragon.osc
+package dragon.osc.send
 
 import scala.audio.osc._
 import scala.swing.audio.parse.arg.{OscAddress, ClientId, OutsideClientId, SelfClient}

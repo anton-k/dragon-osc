@@ -25,7 +25,7 @@ object Names {
     val space = "space"
     val glue = "glue"    
     val content = "content"
-    val app = "app"
+    val app = "main"
 
     val idSet = Set(dial, hfader, vfader, vcheck, hcheck, toggle, multiToggle, xyPad, intDial, hfaderRange, vfaderRange, xyPadRange, dropDownList, textInput, tabs, window)
 

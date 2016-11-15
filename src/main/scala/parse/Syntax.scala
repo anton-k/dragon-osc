@@ -21,6 +21,8 @@ case class ListSym(items: List[Lang]) extends Lang
 case class MapSym(items: Map[String, Lang]) extends Lang
 
 object Lang {
+    def readFile(filename: String): Option[Lang] = read(ReadYaml.loadFile(filename))
+
     def read(str: String): Option[Lang] = read(ReadYaml.loadString(str))
 
     def read(x: Object): Option[Lang] = 

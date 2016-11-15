@@ -8,7 +8,7 @@ import scala.swing.audio.ui._
 
 import scala.audio.osc._
 
-import dragon.osc.Osc
+import dragon.osc.send.Osc
 import dragon.osc.input._
 import dragon.osc.act.{Act, SpecAct, St}
 
