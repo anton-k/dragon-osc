@@ -8,7 +8,7 @@ import dragon.osc.parse.attr._
 import dragon.osc.parse.util._
 
 case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map())
-case class Msg(client: String, addr: String, args: List[Arg])
+case class Msg(client: String, address: String, args: List[Arg])
 
 trait Arg
 case class PrimArg(value: Prim) extends Arg

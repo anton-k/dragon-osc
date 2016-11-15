@@ -1,22 +1,36 @@
-- hor:        
-    - int-dial: 
-        init: 1
-        min:  0
-        max:  10
-        color: olive
-        act:
-          - case:
-              value: 1
-              msg: 
-                client: 
-                addr:   
+main:
+  - window:
+      title: fuzzy
+      content:
+        ver:
+          - hor:        
+            - dial:
+                init: 0.1
+                color: orange
+              id: amp
+              send:
+                - msg:
+                    client: flow
+                    path: /amp
+                    args: [$0]
+            - int-dial:
+                init: 5
+                color: olive
+                range: [0, 10]
+            - toggle:
+                init: false              
+                text: start
+              send:
+                case 1:
+                  - msg:
+                      client: flow
+                      path: /on
+                      args: []
+                case 0:
+                  - msg:
+                      client: flow
+                      path: /off                      
+                      args: []
+          - hfader: {}
 
 
-    - knob:
-
-
-
-
-
-- int-dial: [4, 0, 10]
-- int-dial: [4, 0, 10]

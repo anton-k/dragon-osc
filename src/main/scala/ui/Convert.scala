@@ -29,7 +29,6 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component) {
                 self.minimumSize = new Dimension(width, height)
             }
             
-
             override def closeOperation {                
                 println("Close now")
                 onClose                
@@ -82,7 +81,7 @@ object Convert {
         import Palette._
         import Codec._
 
-        val callback = ui.param.osc.map(compileSend(st)).getOrElse(defaultCallback _)
+        val callback = ui.param.osc.map(st.compileSend).getOrElse(defaultCallback _)
         ui.sym match {
             case P.Hor(xs) => modify(_.setHor).next(group(hor, xs, st))
             case P.Ver(xs) => modify(_.setVer).next(group(ver, xs, st))
@@ -98,7 +97,5 @@ object Convert {
 
     def defaultCallback(xs: List[Object]) {
         println("ok")
-    } 
-
-    def compileSend[A](st: St)(send: Send): (List[Object] => Unit) = defaultCallback // todo          
+    }     
 }

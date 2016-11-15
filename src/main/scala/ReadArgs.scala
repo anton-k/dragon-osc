@@ -3,7 +3,7 @@ package dragon.osc.readargs
 import java.io._
 import scala.util.Try
 
-case class Args(inPort: Int, outPort: Int, filename: String)
+case class Args(inPort: Int, outPort: Int, filename: String, debugMode: Boolean = false)
 
 object Utils {
     def resourceFile(p: String): String = 
@@ -22,6 +22,8 @@ object ReadArgs {
             } getOrElse { Utils.resourceFile("/ui.yaml") }
 
         val outPort = 7711
-        Args(inPort, outPort, filename)
+
+        val debugMode = true
+        Args(inPort, outPort, filename, debugMode)
     }
 }

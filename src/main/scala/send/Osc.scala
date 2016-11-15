@@ -23,9 +23,20 @@ case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClien
         defaultClient.close
         selfClient.close
     }
+
+    def getClient(name: String) = 
+        if (name == "self") selfClient
+        else clients.get(name).getOrElse(defaultClient)
 }
 
-case class Osc(clients: OscClientPool, server: OscServer) {
+case class OscMsg(client: String, address: String, args: List[Object]) {
+    def echo {
+        val argStr = args.map(_.toString).mkString(" ")
+        println(s"${client} / ${address} : ${argStr}")
+    }
+}
+
+case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     def close {
         clients.close        
         server.close
@@ -36,6 +47,13 @@ case class Osc(clients: OscClientPool, server: OscServer) {
     }
 
     def channel[A](oscAddress: OscAddress)(implicit codec: MessageCodec[A]): Channel[A] = clients.channel[A](oscAddress)(codec)
+
+    def send(msg: OscMsg) {
+        if (debugMode) {
+            msg.echo
+        }
+        clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
+    }
 
     def dynamicSend(oscAddress: OscAddress, args: List[Object]) {
         clients.getClient(oscAddress.clientId).dynamicSend(oscAddress.address, args)
@@ -48,6 +66,6 @@ object Osc {
         val selfClient = OscClient(args.outPort)
         val oscServer = OscServer(args.outPort)        
         val clientPool = OscClientPool(Map[String,OscClient](), defaultClient, selfClient)
-        Osc(clientPool, oscServer)
+        Osc(clientPool, oscServer, args.debugMode)
     }
 }

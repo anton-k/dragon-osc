@@ -3,6 +3,7 @@ import org.scalatest._
 import dragon.osc.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.ui._
+import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 
 class PrimWidgets extends FunSuite {
@@ -50,16 +51,16 @@ class PrimWidgets extends FunSuite {
 class ParseGenericParams extends FunSuite {
     import Read._
 
-    def check[A](str: String, w: Widget[Sym], res: Option[Elem]) = 
+    def check[A](str: String, w: Widget[Sym], res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => fromSym(w).run(x)) == res)
 
 
     test ("widget with no params") {
-        check("dial: { color: red }", dial, Some(Elem(Dial(Defaults.float, "red"), Param(None, None))))
+        check("dial: { color: red }", dial, Some(Ui(Dial(Defaults.float, "red"), Param(None, None))))
     }
 
     test ("widget with id") {
-        check( "{ dial: { color: red, init: 0.0 }, id: amp }", dial, Some(Elem(Dial(0.0f, "red"), Param(Some("amp"), None))))
+        check( "{ dial: { color: red, init: 0.0 }, id: amp }", dial, Some(Ui(Dial(0.0f, "red"), Param(Some("amp"), None))))
     }
 }
 
@@ -69,14 +70,14 @@ class PrimUi extends FunSuite {
     def check[A](str: String, res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
-    val d = Elem(Dial(Defaults.float, Defaults.color))
+    val d = Ui(Dial(Defaults.float, Defaults.color))
 
-    test("ui") {
+    test("ui dial") {
         check("dial: {}", Some(d))
     }
 
-    val hf = Elem(HFader(Defaults.float, Defaults.color))
-    test("ui") {
+    val hf = Ui(HFader(Defaults.float, Defaults.color))
+    test("ui hfader") {
         check("hfader: {}", Some(hf))
     }
 }
@@ -87,7 +88,7 @@ class CompoundWidgets extends FunSuite {
     def check[A](str: String, w: Widget[A], res: Option[A]) = 
         assert(Lang.read(str).flatMap(x => w.run(x)) == res)
 
-    val p = Elem(Dial(Defaults.float, Defaults.color))
+    val p = Ui(Dial(Defaults.float, Defaults.color))
 
     test("hor") {
         check("hor: [dial: {}, dial: {}, dial: {}]", hor, 
@@ -106,21 +107,21 @@ class UiCompoundWidgets extends FunSuite {
     def check(str: String, res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
-    val p = Elem(Dial(Defaults.float, Defaults.color))
+    val p = Ui(Dial(Defaults.float, Defaults.color))
 
     test("hor") {
         check("hor: [dial: {}, dial: {}, dial: {}]",  
-            Some(Elem(Hor(List(p, p, p)))))
+            Some(Ui(Hor(List(p, p, p)))))
     }
 
     test("ver") {
         check("ver: [dial: {}, dial: {}, dial: {}]",  
-            Some(Elem(Ver(List(p, p, p)))))
+            Some(Ui(Ver(List(p, p, p)))))
     }
 
     test("tabs") {
         check("tabs: [ page: { title: page1, content: {dial: {}} }, page: { title: page2, content: {dial: {}} } ]",
-            Some(Elem(Tabs(List(Page("page1", p), Page("page2", p))))))
+            Some(Ui(Tabs(List(Page("page1", p), Page("page2", p))))))
     }
 
      def check[A](str: String, widget: Widget[A], res: A) = 
@@ -133,7 +134,57 @@ class UiCompoundWidgets extends FunSuite {
 
     val w = Window(Defaults.string, None, emptyUi)
     test("root") {
-        check[Root]("app: [window: {}, window: {}]", root, Root(List(w,w)))
+        check[Root]("main: [window: {}, window: {}]", root, Root(List(w,w)))
+    }
+}
+
+class ParseParam extends FunSuite {
+    import Read._
+
+    def checkParam(str: String, res: Param) =
+        assert(Lang.read(str).flatMap(x => param.run(x)) == Some(res))
+
+    test("check id no send") {
+        checkParam(
+            "{ dial: { init: 0.1 }, id: amp }",
+            Param(Some("amp"), None))
     }
 
+    val str = """
+      send:
+        case true:
+          - msg:
+              client: flow
+              path: /on
+              args: []
+        case false:
+          - msg:
+              client: flow
+              path: /off                      
+              args: []
+    """
+
+    test("check send") {
+        checkParam(
+            str, 
+            Param(None, Some(Send(Nil, 
+                List(
+                    "true" -> List(Msg("flow", "/on", Nil)), 
+                    "false" -> List(Msg("flow", "/off", Nil))
+                ).toMap
+            ))) )
+    }
+}
+
+class UiSend extends FunSuite {
+    import Read._
+
+    def check(str: String, res: Option[Ui]) = 
+        assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
+
+    test("from sym") {
+        check(
+            "dial: { init: 0.0, color: red, send: [msg: { client: self, path: /amp, args: []}]}", 
+            Some(Ui(Dial(0, "red"), Param(None, Some(Send(List(Msg("self", "/amp", Nil))))))))
+    }
 }
