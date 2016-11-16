@@ -12,25 +12,37 @@ main:
                 - msg:
                     client: flow
                     path: /amp
-                    args: [$0]
+                    args: $0
             - int-dial:
                 init: 5
                 color: olive
                 range: [0, 10]
+              send: 
+                client: synt               
+                path: /set
+                int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]
+              send:
+                client: synt
+                path: /play
+                bool: ["on", "off"]
+              send:
+                client: flow
+                path: /start
+                string:                                                      
+                    amp: amp
+                    cps: cps
+
             - toggle:
                 init: false              
                 text: start
               send:
-                case 1:
-                  - msg:
-                      client: flow
-                      path: /on
-                      args: []
-                case 0:
-                  - msg:
-                      client: flow
-                      path: /off                      
-                      args: []
+                client: flow
+                case true:
+                  - msg:                      
+                      path: /on                      
+                case false:
+                  - msg:                  
+                      path: /off                                            
           - hfader: {}
 
 

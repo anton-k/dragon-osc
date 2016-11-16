@@ -31,6 +31,11 @@ object Names {
 
     val hot = "hot"        
     val cold = "cold"
+    val ints = "int"
+    val booleans = "bool"
+    val strings = "string"
+    val trueStr = "true"
+    val falseStr = "false"
 
     // action names
     val send = "send"

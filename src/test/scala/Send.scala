@@ -97,3 +97,58 @@ class SendTest extends FunSuite {
         )
     }
 } 
+
+class UnwindSend extends FunSuite {
+    def check(str: String, res: Send) = assert(Lang.read(str).flatMap(obj => Send.read.run(obj)) == Some(res))
+
+    def elem(n: Int, res: String) = n.toString -> List(Msg(Defaults.client, Defaults.path, List(PrimArg(PrimString(res)))))
+
+    test ("unwind int") {
+        check("send: { int: [a, b, c] }", Send(Nil, List(elem(0, "a"), elem(1, "b"), elem(2, "c")).toMap))
+    }
+
+    def elem(x: Boolean, res: String) = x.toString -> List(Msg(Defaults.client, Defaults.path, List(PrimArg(PrimString(res)))))
+
+    test ("unwind boolean") {
+        check("send: { bool: [a, b] }", Send(Nil, List(elem(true, "a"), elem(false, "b")).toMap))
+    }
+
+    def elem(x: String, res: String) = x -> List(Msg(Defaults.client, Defaults.path, List(PrimArg(PrimString(res)))))
+
+    test ("unwind string") {
+        check("send: { string: {a: a, b: b}}", Send(Nil, List(elem("a", "a"), elem("b", "b")).toMap))
+    }
+
+    val client = "flow"
+    val path  = "/amp"
+
+    def elem2(n: Int, res: String) = n.toString -> List(Msg(client, path, List(PrimArg(PrimString(res)))))
+
+    test ("unwind int with client and path") {
+        check("send: { client: flow, path: /amp, int: [a, b, c] }", Send(Nil, List(elem2(0, "a"), elem2(1, "b"), elem2(2, "c")).toMap))
+    }
+
+    def elem2(x: Boolean, res: String) = x.toString -> List(Msg(client, path, List(PrimArg(PrimString(res)))))
+
+    test ("unwind boolean with client and path") {
+        check("send: { client: flow, path: /amp, bool: [a, b] }", Send(Nil, List(elem2(true, "a"), elem2(false, "b")).toMap))
+    } 
+
+
+    //def elem
+    test ("unwind simple send with client and path 1") {
+        check("send: { client: flow, path: /amp, default: [msg: { args: []}] }", Send(List(Msg(client, path, Nil)), Map()))
+    }
+
+    def msg(n: Int) = n.toString -> List(Msg(client, path, Nil))
+    test ("unwind simple send with client and path 2") {
+        check("send: { client: flow, path: /amp,  case 0: [msg: { args: []}], case 1: [msg: {args: []}],  default: [msg: { args: []}] }", 
+            Send(List(Msg(client, path, Nil)), List(msg(0), msg(1)).toMap))
+    }
+
+    test ("unwind through") {
+        check("send: [msg: { client: flow, path: /amp, args: []}]", 
+            Send(List(Msg(client,path,Nil)), Map()))
+    }
+
+}

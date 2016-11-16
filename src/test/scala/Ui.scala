@@ -184,7 +184,7 @@ class UiSend extends FunSuite {
 
     test("from sym") {
         check(
-            "dial: { init: 0.0, color: red, send: [msg: { client: self, path: /amp, args: []}]}", 
+            "{ dial: { init: 0.0, color: red}, send: [msg: { client: self, path: /amp, args: []}]}", 
             Some(Ui(Dial(0, "red"), Param(None, Some(Send(List(Msg("self", "/amp", Nil))))))))
     }
 }

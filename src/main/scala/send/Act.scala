@@ -31,8 +31,8 @@ case class St(osc: Osc, memory: Memory) {
         osc.close        
     }
 
-    def compileSend(send: Send)(input: List[Object]) {
-        Util.msgList(input, send).foreach(msg => Util.convertMsg(this)(input, msg).foreach(x => osc.send(x)))
+    def compileSend(send: Send)(oscInput: List[Object], caseArgInput: List[Object]) {
+        Util.msgList(caseArgInput, send).foreach(msg => Util.convertMsg(this)(oscInput, msg).foreach(x => osc.send(x)))
     }
 }
 

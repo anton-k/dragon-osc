@@ -20,7 +20,7 @@ case class ArgEquals(value: Prim) extends Guard
 
 object Send {
 
-    val read: Attr[Option[Send]] = Attr.attr(Names.send, x => Some(readMessages(x)), None)
+    val read: Attr[Option[Send]] = Attr.attr(Names.send, (x: Lang) => Some(readMessages(unwind(x))), None)
 
     def readMessages(obj: Lang) = obj match {
         case ListSym(xs) => Some(Send(xs.map(readMsg).flatten))
@@ -34,6 +34,7 @@ object Send {
 
     def readArgs(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readSingleArg)
+        case PrimSym(prim) => readSingleArg(obj).map(x => List(x))
         case _ => None
     }
 
@@ -61,4 +62,65 @@ object Send {
         .filter(keyValue => ! keyValue._2.isEmpty)
         .map(keyValue => (keyValue._1, keyValue._2.get))
         .toMap
+
+
+    // ---------------------------------------------------------------------
+
+    def unwind(obj: Lang): Lang = unwindRootDefs(obj, unwindMessages(obj))
+
+    def unwindRootDefs(obj: Lang, msgs: Lang): Lang = {
+        def getElem(m: Map[String,Lang], key: String) = m.get(key).map(value => (key, value))
+
+        def insert(xs: List[(String, Lang)])(elem: Lang) = elem match {
+            case MapSym(m) => MapSym(m ++ xs.toMap)
+            case _ => elem
+        }
+
+        def insertInMsgList(adds: List[(String, Lang)], elem: Lang) = elem match {
+            case ListSym(msgs) => ListSym(msgs.map(insertInMsg(adds)))                
+            case _ => elem
+        }
+
+        def insertInMsg(adds: List[(String,Lang)])(elem: Lang) = {
+            val msgContent = elem.getKey(Attributes.msg).map(insert(adds))
+            msgContent.map(content => MapSym(List(Attributes.msg -> content).toMap)).getOrElse(elem)
+        }
+
+        obj match {
+            case MapSym(m) => {
+                val adds = List(getElem(m, Attributes.client), getElem(m, Attributes.path)).flatten
+                msgs match {
+                    case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Attributes.msgCase) || key.startsWith(Attributes.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
+                    case _ => msgs
+                }                
+            }                        
+            case _ => obj
+        }
+    }
+
+    def unwindMessages(obj: Lang) = {
+        def inCase(x: String) = Attributes.msgCase + " " + x
+        def fromArg(elem: Lang) = ListSym(List(MapSym(List(Attributes.msg -> MapSym(List(Attributes.args -> elem).toMap)).toMap)))
+
+        def ints(obj: Lang): Option[Map[String,Lang]] = obj match {
+            case ListSym(xs) => Some(xs.zipWithIndex.map( { case (elem, ix) => (inCase(ix.toString), fromArg(elem)) } ).toMap)
+            case _ => None
+        }
+        def booleans(obj: Lang): Option[Map[String,Lang]] = obj match {            
+            case ListSym(List(onTrue, onFalse)) => Some(List(inCase(Names.trueStr) -> fromArg(onTrue), inCase(Names.falseStr) -> fromArg(onFalse)).toMap)
+            case _ => None
+        }
+        def strings(obj: Lang): Option[Map[String,Lang]] = obj match {
+            case MapSym(m) => Some(m.map({case (key, value) => (inCase(key), fromArg(value)) }))
+            case _ => None
+        }
+
+        def getMsgs(name: String, extract: Lang => Option[Map[String,Lang]], m: Map[String,Lang]) =         
+            m.get(name).flatMap(extract)
+
+        obj match {
+            case MapSym(m) => MapSym((getMsgs(Names.ints, ints, m) orElse getMsgs(Names.booleans, booleans, m) orElse getMsgs(Names.strings, strings, m)).getOrElse(m))
+            case _ => obj
+        }
+    }
 }

@@ -6,6 +6,7 @@ import java.awt.{Color,Graphics2D,BasicStroke,Font}
 import java.awt.geom._
 
 import scala.swing.audio.ui._
+import scala.audio.osc._
 
 import dragon.osc.state._
 
@@ -81,21 +82,17 @@ object Convert {
         import Palette._
         import Codec._
 
-        val callback = ui.param.osc.map(st.compileSend).getOrElse(defaultCallback _)
+        val send = ui.param.osc //  ui.param.osc.map(st.compileSend).getOrElse(defaultCallback _)
         ui.sym match {
             case P.Hor(xs) => modify(_.setHor).next(group(hor, xs, st))
             case P.Ver(xs) => modify(_.setVer).next(group(ver, xs, st))
             case P.Tabs(xs) => mkTabs(st, xs)
 
-            case P.Dial(init, color)                => pure(Dial(init, palette(color))(onFloat(callback)))
-            case P.HFader(init, color)              => pure(HFader(init, palette(color))(onFloat(callback)))
-            case P.VFader(init, color)              => pure(VFader(init, palette(color))(onFloat(callback)))
-            case P.Toggle(init, color, text)        => pure(ToggleButton(init, palette(color), Some(text))(onBoolean(callback)))
-            case P.IntDial(init, color, range)      => pure(IntDial(init, range, palette(color))(onInt(callback)))            
+            case P.Dial(init, color)                => pure(Dial(init, palette(color))(onFloat(st, send)))
+            case P.HFader(init, color)              => pure(HFader(init, palette(color))(onFloat(st, send)))
+            case P.VFader(init, color)              => pure(VFader(init, palette(color))(onFloat(st, send)))
+            case P.Toggle(init, color, text)        => pure(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send)))
+            case P.IntDial(init, color, range)      => pure(IntDial(init, range, palette(color))(onInt(st, send)))
         }
-    }
-
-    def defaultCallback(xs: List[Object]) {
-        println("ok")
-    }     
+    }       
 }
