@@ -1,4 +1,4 @@
-package dragon.osc.const
+package dragon.osc.parse.const
 
 object Names {
     val dial = "dial"
@@ -41,9 +41,7 @@ object Names {
     val send = "send"
     val save = "save"
     val run  = "run"
-}
 
-object Attributes {    
     val color = "color"
     val init  = "init"
     val text = "text"
@@ -56,7 +54,7 @@ object Attributes {
     val default = "default"   
     val msgCase = "case"
     val title = "title"
-    val size = "size"
+    val size = "size"    
 }
 
 object Defaults {

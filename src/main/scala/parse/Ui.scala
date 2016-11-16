@@ -1,6 +1,6 @@
 package dragon.osc.parse.ui
 
-import dragon.osc.const._
+import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
 import dragon.osc.parse.send._

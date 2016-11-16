@@ -1,6 +1,6 @@
 
 import scala.swing.audio.parse.arg._
-import dragon.osc.const.Names
+import dragon.osc.parse.const.Names
 import dragon.osc.act.{Act, SpecAct}
 import dragon.osc.state._
 

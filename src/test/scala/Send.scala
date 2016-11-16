@@ -1,6 +1,6 @@
 import org.scalatest._
 
-import dragon.osc.const._
+import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.send._
 import dragon.osc.parse.widget._

@@ -1,5 +1,5 @@
 
-import dragon.osc.const.Names
+import dragon.osc.parse.const.Names
 import dragon.osc.act._
 import dragon.osc.color._
 import java.awt.Color

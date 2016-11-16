@@ -1,7 +1,7 @@
 package dragon.osc.act
 
 import scala.swing.audio.parse.arg.{Arg, Settings, DefaultOscSend, OscBoolean, OscInt, OscFloat, Sym, UiSym, OscAddress, UiDecl, UiList}
-import dragon.osc.const.Names
+import dragon.osc.parse.const.Names
 import dragon.osc.input.InputBase
 import dragon.osc.send.Osc
 import scala.audio.osc.MessageCodec

@@ -2,7 +2,7 @@ package dragon.osc.parse.send
 
 import scala.util.Try
 
-import dragon.osc.const._
+import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
 import dragon.osc.parse.util._
@@ -28,9 +28,9 @@ object Send {
         case _ => None
     }
 
-    def readMsg(obj: Lang): Option[Msg] = obj.getKey(Attributes.msg).map(Attr.lift3(Msg, Attr.client, Attr.path, args).run)
+    def readMsg(obj: Lang): Option[Msg] = obj.getKey(Names.msg).map(Attr.lift3(Msg, Attr.client, Attr.path, args).run)
 
-    def args = Attr.attr[List[Arg]](Attributes.args, readArgs, List())
+    def args = Attr.attr[List[Arg]](Names.args, readArgs, List())
 
     def readArgs(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readSingleArg)
@@ -55,10 +55,10 @@ object Send {
 
     def readMap(m: Map[String,Lang]) = Send(readDefault(m), readOnValue(m))
 
-    def readDefault(m: Map[String,Lang]) = m.get(Attributes.default).flatMap(readMsgList).getOrElse(Nil)
+    def readDefault(m: Map[String,Lang]) = m.get(Names.default).flatMap(readMsgList).getOrElse(Nil)
 
-    def readOnValue(m: Map[String,Lang]) = m.toList.filter(keyValue => keyValue._1.startsWith(Attributes.msgCase + " "))
-        .map(keyValue => (keyValue._1.drop(Attributes.msgCase.length + 1), readMsgList(keyValue._2)))
+    def readOnValue(m: Map[String,Lang]) = m.toList.filter(keyValue => keyValue._1.startsWith(Names.msgCase + " "))
+        .map(keyValue => (keyValue._1.drop(Names.msgCase.length + 1), readMsgList(keyValue._2)))
         .filter(keyValue => ! keyValue._2.isEmpty)
         .map(keyValue => (keyValue._1, keyValue._2.get))
         .toMap
@@ -82,15 +82,15 @@ object Send {
         }
 
         def insertInMsg(adds: List[(String,Lang)])(elem: Lang) = {
-            val msgContent = elem.getKey(Attributes.msg).map(insert(adds))
-            msgContent.map(content => MapSym(List(Attributes.msg -> content).toMap)).getOrElse(elem)
+            val msgContent = elem.getKey(Names.msg).map(insert(adds))
+            msgContent.map(content => MapSym(List(Names.msg -> content).toMap)).getOrElse(elem)
         }
 
         obj match {
             case MapSym(m) => {
-                val adds = List(getElem(m, Attributes.client), getElem(m, Attributes.path)).flatten
+                val adds = List(getElem(m, Names.client), getElem(m, Names.path)).flatten
                 msgs match {
-                    case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Attributes.msgCase) || key.startsWith(Attributes.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
+                    case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Names.msgCase) || key.startsWith(Names.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
                     case _ => msgs
                 }                
             }                        
@@ -99,8 +99,8 @@ object Send {
     }
 
     def unwindMessages(obj: Lang) = {
-        def inCase(x: String) = Attributes.msgCase + " " + x
-        def fromArg(elem: Lang) = ListSym(List(MapSym(List(Attributes.msg -> MapSym(List(Attributes.args -> elem).toMap)).toMap)))
+        def inCase(x: String) = Names.msgCase + " " + x
+        def fromArg(elem: Lang) = ListSym(List(MapSym(List(Names.msg -> MapSym(List(Names.args -> elem).toMap)).toMap)))
 
         def ints(obj: Lang): Option[Map[String,Lang]] = obj match {
             case ListSym(xs) => Some(xs.zipWithIndex.map( { case (elem, ix) => (inCase(ix.toString), fromArg(elem)) } ).toMap)

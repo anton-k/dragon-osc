@@ -7,7 +7,7 @@ import java.awt.{Color,Graphics2D,BasicStroke}
 import scala.swing.audio.ui._
 
 import dragon.osc.act._
-import dragon.osc.const._
+import dragon.osc.parse.const._
 import scala.swing.audio.parse
 import scala.swing.audio.parse.arg._
 

@@ -1,6 +1,6 @@
 package dragon.osc.parse.attr
 
-import dragon.osc.const._
+import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 
 trait Attr[A] { self =>
@@ -34,7 +34,6 @@ object Attr {
         ap(lift3[A,B,C,D=>E]((a, b, c) => (d: D) => f(a,b,c,d), ma, mb, mc), md)   
     }
 
-
     def attr[A](name: String, extract: Lang => Option[A], default: A) = new Attr[A] {
         def run(obj: Lang) = (obj match {
             case MapSym(m) => m.get(name).flatMap(extract)
@@ -45,19 +44,19 @@ object Attr {
     // -------------------------------------------------------
     // specific attributes
 
-    def initFloat   = attr[Float](Attributes.init, readFloat, Defaults.float)
-    def initBoolean = attr[Boolean](Attributes.init, readBoolean, Defaults.boolean)
-    def initInt = attr[Int](Attributes.init, readInt, Defaults.int)
-    def initString = attr[String](Attributes.init, readString, Defaults.string)
+    def initFloat   = attr[Float](Names.init, readFloat, Defaults.float)
+    def initBoolean = attr[Boolean](Names.init, readBoolean, Defaults.boolean)
+    def initInt = attr[Int](Names.init, readInt, Defaults.int)
+    def initString = attr[String](Names.init, readString, Defaults.string)
 
-    def color = attr[String](Attributes.color, readString, Defaults.color)
-    def text = attr[String](Attributes.text, readString, Defaults.string)
-    def rangeInt = attr[(Int, Int)](Attributes.range, readRangeInt, Defaults.rangeInt)
-    def id = attr[Option[String]](Attributes.id, x => Some(readString(x)), None)
-    def client = attr[String](Attributes.client, readString, Defaults.client)
-    def path = attr[String](Attributes.path, readString, Defaults.path)
-    def title = attr[String](Attributes.title, readString, Defaults.string)
-    def size = attr[Option[(Int,Int)]](Attributes.size, readSize, None)
+    def color = attr[String](Names.color, readString, Defaults.color)
+    def text = attr[String](Names.text, readString, Defaults.string)
+    def rangeInt = attr[(Int, Int)](Names.range, readRangeInt, Defaults.rangeInt)
+    def id = attr[Option[String]](Names.id, x => Some(readString(x)), None)
+    def client = attr[String](Names.client, readString, Defaults.client)
+    def path = attr[String](Names.path, readString, Defaults.path)
+    def title = attr[String](Names.title, readString, Defaults.string)
+    def size = attr[Option[(Int,Int)]](Names.size, readSize, None)
 
     //---------------------------------------------------------
     // field readers

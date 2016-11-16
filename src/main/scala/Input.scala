@@ -1,7 +1,7 @@
 import scala.swing.{Component}
 import scala.swing.audio.ui._
 import scala.audio.osc.{MessageCodec, OscServer}
-import dragon.osc.const.Names
+import dragon.osc.parse.const.Names
 
 package dragon.osc {
     package object input {
