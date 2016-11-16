@@ -51,30 +51,3 @@ case class Memory(var memory: Map[String, Object]) {
 object Memory {
     def init = Memory(Map[String,Object]())
 }
-
-/*
-trait ToSpec[A] {
-    def getMessages(send: Send)(input: A): List[Msg]
-}
-
-object ToSpec {
-    implicit val floatToSpec = new ToSpec[Float] {
-        def getMessages(send: Send)(input: Float) = send.default
-    }
-
-    implicit val stringToSpec = new ToSpec[String] {
-        def getMessages(send: Send)(input: String) = send.onValue.get(input).getOrElse(send.default)
-    }
-
-    implicit val booleanToSpec = new ToSpec[String] {
-        def getMessages(send: Send)(input: Boolean)  = {
-            val booleanMap: Map[Boolean,List[Msg]] = ???
-            booleanMap.get(input).getOrElse(send.default)
-        }
-    }
-
-    implicit val intToSpec = new ToSpec[Int] {
-
-    }
-}
-*/

@@ -2,47 +2,44 @@ main:
   - window:
       title: fuzzy
       content:
-        ver:
-          - hor:        
-            - dial:
-                init: 0.1
-                color: orange
-              id: amp
-              send:
-                - msg:
-                    client: flow
-                    path: /amp
-                    args: $0
-            - int-dial:
-                init: 5
-                color: olive
-                range: [0, 10]
-              send: 
-                client: synt               
-                path: /set
-                int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]
-              send:
-                client: synt
-                path: /play
-                bool: ["on", "off"]
-              send:
-                client: flow
-                path: /start
-                string:                                                      
-                    amp: amp
-                    cps: cps
-
-            - toggle:
-                init: false              
-                text: start
-              send:
-                client: flow
-                case true:
-                  - msg:                      
-                      path: /on                      
-                case false:
-                  - msg:                  
-                      path: /off                                            
-          - hfader: {}
+        tabs:
+          - page:
+              title: "1"
+              content:
+                ver:
+                  - hor:        
+                    - dial:
+                        init: 0.1
+                        color: orange
+                      id: amp
+                      send:
+                        - msg:
+                            client: flow
+                            path: /amp
+                            args: $0
+                    - int-dial:
+                        init: 5
+                        color: olive
+                        range: [0, 10]
+                      send: 
+                        client: synt               
+                        path: /set
+                        int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]
+                    - toggle:                
+                        init: false              
+                        text: start
+                      send:                                
+                        client: synt
+                        path: /play
+                        bool: ["on", "off"]                                                           
+                  - hfader: {}
+          - page:
+              title: "2"
+              content:
+                toggle:
+                  init: true
+                  text: play
+                send:
+                  bool: [["q", 1], ["q", 2]]
 
 

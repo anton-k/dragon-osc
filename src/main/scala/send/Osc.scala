@@ -32,7 +32,7 @@ case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClien
 case class OscMsg(client: String, address: String, args: List[Object]) {
     def echo {
         val argStr = args.map(_.toString).mkString(" ")
-        println(s"${client} / ${address} : ${argStr}")
+        println(s"${client} ${address} : ${argStr}")
     }
 }
 
