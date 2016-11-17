@@ -41,5 +41,18 @@ main:
                   text: play
                 send:
                   bool: [["q", 1], ["q", 2]]
+  - window:
+      title: sets
+      size: [200, 100]
+      content:
+        toggle:
+          color: olive
+          text: start
+        send:
+          client: main
+          bool: [on, off]
+
+
+
 
 

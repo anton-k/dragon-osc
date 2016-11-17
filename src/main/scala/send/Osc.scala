@@ -1,8 +1,9 @@
 package dragon.osc.send
 
+import scala.swing.audio.ui.SetWidget
 import scala.audio.osc._
 import scala.swing.audio.parse.arg.{OscAddress, ClientId, OutsideClientId, SelfClient}
-import dragon.osc.input.{SetupOscServer, InputBase}
+import dragon.osc.send.input.{SetupOscServer, InputBase}
 import dragon.osc.readargs._
 
 case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClient, selfClient: OscClient) {
@@ -57,6 +58,11 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
 
     def dynamicSend(oscAddress: OscAddress, args: List[Object]) {
         clients.getClient(oscAddress.clientId).dynamicSend(oscAddress.address, args)
+    }
+
+    def addListener[A](id: String, widget: SetWidget[A])(implicit codec: MessageCodec[A]) {
+        server.listen[A](s"/hot/${id}")(msg => widget.set(msg, true))(codec)
+        server.listen[A](s"/cold/${id}")(msg => widget.set(msg, false))(codec)
     }
 }
 

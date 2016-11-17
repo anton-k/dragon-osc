@@ -3,16 +3,18 @@ import scala.swing.audio.ui._
 import scala.audio.osc.{MessageCodec, OscServer}
 import dragon.osc.parse.const.Names
 
-package dragon.osc {
-    package object input {
-        type IdMap[A] = Map[String,A]
-        def emptyMap[A] = Map[String,A]()
+package dragon.osc.send.input {
 
-    }
+case class InputBase() {
+
 }
 
-package dragon.osc.input {
+object SetupOscServer {
+    def addListeners(server: OscServer, inputBase: InputBase) {}
 
+}
+
+/*
 trait Input {
     val id: String    
 }
@@ -134,5 +136,6 @@ object SetupOscServer {
         go(Names.cold, false)
     }
 }
+*/
 
 }

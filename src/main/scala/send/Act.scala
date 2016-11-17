@@ -1,6 +1,10 @@
 package dragon.osc.send
 
+import scala.swing.audio.ui.SetWidget
+import scala.audio.osc.MessageCodec
+
 import dragon.osc.readargs._
+import dragon.osc.ui._
 import dragon.osc.parse.send._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.util.{Util => ParseUtil}
@@ -33,6 +37,10 @@ case class St(osc: Osc, memory: Memory) {
 
     def compileSend(send: Send)(oscInput: List[Object], caseArgInput: List[Object]) {
         Util.msgList(caseArgInput, send).foreach(msg => Util.convertMsg(this)(oscInput, msg).foreach(x => osc.send(x)))
+    }
+
+    def addListener[A](id: String, widget: SetWidget[A])(implicit codec: MessageCodec[A]) {
+        osc.addListener(id, widget)(codec)
     }
 }
 
