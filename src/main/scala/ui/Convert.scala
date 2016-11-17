@@ -41,12 +41,18 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component) {
     }
 }
 
-case class Context(isHor: Boolean = true, idMap: IdMap = IdMap(Map[String,Component]())) {
+case class Context(isHor: Boolean = true, idMap: IdMap = IdMap()) {
     def setHor = this.copy(isHor = true)
     def setVer = this.copy(isHor = false)
+
+    def registerId(id: Option[String], tag: String, widget: Component) = 
+        id.map(x => this.copy(idMap = this.idMap.insert(x, tag, widget))).getOrElse(this)
 }
 
-case class IdMap(m: Map[String,Component])
+case class IdMap(content: Map[(String,String),Component] = Map()) {
+    def insert(id: String, tag: String, ui: Component) = IdMap(content + ((id, tag) -> ui))
+    def getIds = content.keys.toList.map(_._1)
+}
 
 object Convert {      
     def convert(st: St, app: P.Root): (Root, IdMap) = {        
@@ -61,19 +67,19 @@ object Convert {
         convertUi(st)(window.content).map(ui => Window(window.title, window.size, ui))
 
     def convertUi(st: St)(ui: P.Ui): State[Context, Component] = 
-        mkComponent(st)(ui).map { widget => {
-            registerId(st, widget, ui.param.id)
-            widget
+        mkComponent(st)(ui).flatMap { widget => {
+            registerId( ui.sym.tag, widget,ui.param.id).next(pure(widget))            
         }}    
 
-    def registerId(st: St, ui: Component, optId: Option[String]) {
-        optId.foreach(id => st.memory.register(id, ui))
-    }
+    def registerId(tag: String, ui: Component, optId: Option[String]) = 
+        State.modify((x: Context) => x.registerId(optId, tag, ui))
 
     def pure[A](a: A) = State.pure[Context,A](a)
     def modify(f: Context => Context) = State.modify[Context](f)
     def group(mk: List[Component] => Component, xs: List[P.Ui], st: St): State[Context,Component] =
         State.mapM(xs)(convertUi(st)).map(mk)
+
+    def withOrient[A](onHor: A, onVer: A): State[Context,A] = State.get.map(ctx => if (ctx.isHor) onHor else onVer)
 
     def mkTabs(st: St, xs: List[P.Page]) = 
         State.mapM(xs)({ page => convertUi(st)(page.content).map(x => (page.title, x))}).map(Util.tabs)
@@ -92,7 +98,8 @@ object Convert {
             case P.HFader(init, color)              => pure(HFader(init, palette(color))(onFloat(st, send)))
             case P.VFader(init, color)              => pure(VFader(init, palette(color))(onFloat(st, send)))
             case P.Toggle(init, color, text)        => pure(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send)))
-            case P.IntDial(init, color, range)      => pure(IntDial(init, range, palette(color))(onInt(st, send)))
+            case P.IntDial(init, color, range)      => pure(IntDial(init, range, palette(color))(onInt(st, send)))            
+            case P.Space  => withOrient(Swing.HStrut(10), Swing.VStrut(10))
         }
     }       
 }

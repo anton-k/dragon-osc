@@ -7,6 +7,11 @@ import dragon.osc.parse.tfm._
 object Parse {
 
     def file(filename: String): Option[Root] =
-        Lang.readFile(filename).flatMap(x => Read.root.run(Tfm.tfmLang(x)))    
+        Lang.readFile(filename).flatMap(symbol)
 
+    def string(str: String): Option[Root] = 
+        Lang.read(str).flatMap(symbol)
+
+    def symbol(obj: Lang): Option[Root] =
+        Read.root.run(Tfm.tfmLang(obj))
 }
