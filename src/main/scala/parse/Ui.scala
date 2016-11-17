@@ -15,28 +15,25 @@ case class Param(id: Option[String], osc: Option[Send])
 // ----------------------------------------
 // compound widgets
 
-trait Sym { 
-    def tag: String
-}
+trait Sym
+case class Hor(items: List[Ui])             extends Sym
+case class Ver(items: List[Ui])             extends Sym
 
-case class Hor(items: List[Ui])             extends Sym { def tag = Names.hor }
-case class Ver(items: List[Ui])             extends Sym { def tag = Names.ver }
-
-case class Tabs(items: List[Page])          extends Sym { def tag = Names.tabs }
+case class Tabs(items: List[Page])          extends Sym
 case class Page(title: String, content: Ui)
-object Space                                extends Sym { def tag = Names.space }
-object Glue                                 extends Sym { def tag = Names.glue }
+object Space                                extends Sym
+object Glue                                 extends Sym
 
 // ----------------------------------------
 // primitive widgets
 
-case class Dial(init: Float, color: String)                     extends Sym { def tag = Names.dial }
-case class HFader(init: Float, color: String)                   extends Sym { def tag = Names.hfader }
-case class VFader(init: Float, color: String)                   extends Sym { def tag = Names.vfader }
-case class Toggle(init: Boolean, color: String, text: String)   extends Sym { def tag = Names.toggle }
-case class IntDial(init: Int, color: String, range: (Int, Int)) extends Sym { def tag = Names.intDial }
-case class Button(color: String, text: String)                  extends Sym { def tag = Names.button }
-case class Label(color: String, text: String)                   extends Sym { def tag = Names.label }
+case class Dial(init: Float, color: String)                     extends Sym
+case class HFader(init: Float, color: String)                   extends Sym
+case class VFader(init: Float, color: String)                   extends Sym
+case class Toggle(init: Boolean, color: String, text: String)   extends Sym
+case class IntDial(init: Int, color: String, range: (Int, Int)) extends Sym
+case class Button(color: String, text: String)                  extends Sym
+case class Label(color: String, text: String)                   extends Sym
 
 // -----------------------------------------
 
