@@ -1,5 +1,4 @@
 import org.scalatest._
-import scala.swing.audio.parse.arg._
 
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.yaml._

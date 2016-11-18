@@ -9,9 +9,9 @@ object Keyboard {
     import Key._
 
     def keyFromString(str: String): Option[Key.Value] = Try { str match {
-        case str if str.length == 1 && str.forall(_.isLetter) => withName(str)
-        case str if str.forall(_.isDigit) => withName("Key" + str)
-        case str if str.startsWith("numpad") && str.length == 7 && str.last.isDigit => withName(s"Numpad${str.last}")
+        case str if str.length == 1 && str.forall(_.isLetter) => withName(str.map(_.toUpper))
+        case str if str.forall(_.isDigit) => withName(str)
+        // case str if str.startsWith("numpad") && str.length == 7 && str.last.isDigit => withName(s"Numpad${str.last}")
         case str if str.startsWith("f") && str.drop(1).forall(_.isDigit) => withName(s"F${str.drop(1)}")
 
         case "space" => Space
