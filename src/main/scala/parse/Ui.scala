@@ -7,7 +7,7 @@ import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 import dragon.osc.parse.hotkey._
 
-case class Root(windows: List[Window], hotKeys: List[HotKeyEvent] = Nil)
+case class Root(windows: List[Window], hotKeys: List[HotKeyEvent])
 case class Window(title: String, size: Option[(Int, Int)], content: Ui) 
 
 case class Ui(sym: Sym, param: Param = Param(None, None))
@@ -85,5 +85,5 @@ object Read {
 
     def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
     
-    def root: Widget[Root] = Widget.listBy(window)(Names.app, xs => Root(xs))
+    def root: Widget[Root] = Widget.lift2(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read)
 }
