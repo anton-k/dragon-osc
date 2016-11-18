@@ -3,7 +3,15 @@ package dragon.osc.parse.syntax
 import dragon.osc.parse.yaml._
 import dragon.osc.parse.util._
 
-trait Prim 
+trait Prim {
+    def toObject: Object = this match {
+        case PrimInt(x)     => x.asInstanceOf[Object]
+        case PrimFloat(x)   => x.asInstanceOf[Object]
+        case PrimBoolean(x) => x.asInstanceOf[Object]
+        case PrimString(x)  => x.asInstanceOf[Object]
+    }
+}
+
 case class PrimInt(value: Int) extends Prim
 case class PrimFloat(value: Float) extends Prim
 case class PrimBoolean(value: Boolean) extends Prim

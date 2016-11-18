@@ -37,7 +37,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     }
 
     def addListener[A](id: String, widget: SetWidget[A])(implicit codec: MessageCodec[A]) {
-        server.listen[A](s"/hot/${id}")(msg => widget.set(msg, true))(codec)
+        server.listen[A](s"/${id}")(msg => widget.set(msg, true))(codec)
         server.listen[A](s"/cold/${id}")(msg => widget.set(msg, false))(codec)
     }
 }

@@ -13,7 +13,7 @@ main:
                         color: orange
                       id: amp
                       send:
-                        - msg:
+                        - msg: 
                             client: flow
                             path: /amp
                             args: $0
@@ -24,8 +24,9 @@ main:
                       send: 
                         client: synt               
                         path: /set
-                        int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]
-                    - toggle:                
+                        int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]                   
+                    - toggle: 
+                      id: play               
                         init: false              
                         text: start
                       send:                                
@@ -52,7 +53,32 @@ main:
           client: main
           bool: [on, off]
 
+keys:
+  - key: [ alt, shift, "1"]
+    when: { win1: 0 }
+    send:
+      path: /play/toggle                        
+  - key: "2"
+    when: { win1: 0 }
+    send:
+      path: /amp/add-float
+      args: [0.05]
+  - key: "3"
+    send:
+      path: /amp/add-float
+      args: [-0.05]
 
-
+  - key: "1"
+    send:
+      - msg: { path: /win1, args: 0 }
+      - msg: { path: /save, args: ["win", 0] }
+  - key: "2"
+    send:
+      - msg: { path: /win1, args: 1 }
+      - msg: { path: /save, args: ["win", 1] }
+  - key: "3"
+    send:
+      - msg: { path: /win1, args: 2 }
+      - msg: { path: /save, args: ["win", 2] }
 
 

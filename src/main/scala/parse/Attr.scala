@@ -41,6 +41,8 @@ object Attr {
         }).getOrElse(default)        
     }
 
+    def optAttr[A](name: String, extract: Lang => Option[A]) = attr[Option[A]](name, x => extract(x).map(a => Some(a)), None)
+
     // -------------------------------------------------------
     // specific attributes
 

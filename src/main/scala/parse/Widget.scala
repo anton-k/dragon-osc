@@ -39,6 +39,18 @@ object Widget {
     def pure[A](a: A) = new Widget[A] {
         def run(obj: Lang) = Some(a)
     }
+
+    def listBy[A,B](elem: Widget[B])(key: String, mk: List[B] => A) = new Widget[A] {
+        def run(obj: Lang) = obj.getKey(key).flatMap {
+            case ListSym(xs) => Some(mk(xs.map(elem.run).flatten))
+            case _ => None
+        }
+    }     
+
+    def prim[A](name: String, attr: Attr[A]) = new Widget[A] {
+        def run(obj: Lang) = obj.getKey(name).map(attr.run)
+    }    
+
 }
 
 trait Widget[+A] { self =>

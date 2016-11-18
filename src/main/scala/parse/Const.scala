@@ -54,7 +54,10 @@ object Names {
     val default = "default"   
     val msgCase = "case"
     val title = "title"
-    val size = "size"    
+    val size = "size"
+    val keys = "keys"    
+    val keyGuard = "when"
+    val key = "key"
 }
 
 object Defaults {
