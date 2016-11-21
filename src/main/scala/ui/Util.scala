@@ -9,5 +9,11 @@ object Util {
             body.foreach { case (name, ui) => 
                 pages += new Page(name, ui)
             }
+
+            reactions += {
+              case SelectionChanged( x ) => println( "changed to %d" format(tp.selection.index))              
+            }
+
+            listenTo( this.selection )
         }
 }
