@@ -7,8 +7,8 @@ import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 import dragon.osc.parse.hotkey._
 
-case class Root(windows: List[Window], hotKeys: List[HotKeyEvent])
-case class Window(title: String, size: Option[(Int, Int)], content: Ui) 
+case class Root(windows: List[Window], hotKeys: Keys)
+case class Window(title: String, size: Option[(Int, Int)], content: Ui, hotKeys: Keys) 
 
 case class Ui(sym: Sym, param: Param = Param(None, None))
 case class Param(id: Option[String], osc: Option[Send])
@@ -17,13 +17,13 @@ case class Param(id: Option[String], osc: Option[Send])
 // compound widgets
 
 trait Sym
-case class Hor(items: List[Ui])             extends Sym
-case class Ver(items: List[Ui])             extends Sym
+case class Hor(items: List[Ui])                                 extends Sym
+case class Ver(items: List[Ui])                                 extends Sym
 
-case class Tabs(items: List[Page])          extends Sym
-case class Page(title: String, content: Ui)
-object Space                                extends Sym
-object Glue                                 extends Sym
+case class Tabs(items: List[Page])                              extends Sym
+case class Page(title: String, content: Ui, hotKeys: Keys)
+object Space                                                    extends Sym
+object Glue                                                     extends Sym
 
 // ----------------------------------------
 // primitive widgets
@@ -58,7 +58,7 @@ object Read {
     def ver = list(Names.ver, Ver)
 
     def tabContent: Attr[Option[Ui]] = attr(Names.content, obj => ui.run(obj).map(x => Some(x)), None)
-    def page: Widget[Option[Page]] = Widget.prim(Names.page, lift2((t: String, optCont: Option[Ui]) => optCont.map(cont => Page(t, cont)), title, tabContent))
+    def page: Widget[Option[Page]] = Widget.prim(Names.page, lift3((t: String, optCont: Option[Ui], keys: Keys) => optCont.map(cont => Page(t, cont, keys)), title, tabContent, HotKey.readAttr))
     def tabs = Widget.listBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))  
 
     def widgets: Stream[Widget[Sym]] = 
@@ -81,7 +81,7 @@ object Read {
 
     def ui: Widget[Ui] = Widget.any(widgets.map(fromSym))
 
-    def window: Widget[Window] = Widget.prim(Names.window, lift3(Window, title, size, windowContent))
+    def window: Widget[Window] = Widget.prim(Names.window, lift4(Window, title, size, windowContent, HotKey.readAttr))
 
     def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
     

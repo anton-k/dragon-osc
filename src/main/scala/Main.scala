@@ -10,7 +10,7 @@ object App {
     val args = ReadArgs(rawArgs)
     val st = St.init(args)
     val wins = Convert.convert(st, Parse.file(args.filename).get)
-    wins.show(st.close)    
+    wins.show(st)    
   }
 }
 

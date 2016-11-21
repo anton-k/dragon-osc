@@ -21,14 +21,15 @@ main:
                         init: 5
                         color: olive
                         range: [0, 10]
+                      id: synt
                       send: 
                         client: synt               
                         path: /set
                         int: ["pad-1.csd", "pad-2.csd", "pad-3.csd", "pad-4.csd", "pad-5.csd"]                   
-                    - toggle: 
-                      id: play               
+                    - toggle:                       
                         init: false              
                         text: start
+                      id: play
                       send:                                
                         client: synt
                         path: /play
@@ -41,7 +42,7 @@ main:
                   init: true
                   text: play
                 send:
-                  bool: [["q", 1], ["q", 2]]
+                  bool: [["q", 1], ["q", 2]]                
   - window:
       title: sets
       size: [200, 100]
@@ -52,33 +53,32 @@ main:
         send:
           client: main
           bool: [on, off]
+        id: btn
 
 keys:
-  - key: [ alt, shift, "1"]
-    when: { win1: 0 }
-    send:
-      path: /play/toggle                        
-  - key: "2"
-    when: { win1: 0 }
-    send:
-      path: /amp/add-float
-      args: [0.05]
-  - key: "3"
-    send:
-      path: /amp/add-float
-      args: [-0.05]
 
   - key: "1"
     send:
-      - msg: { path: /win1, args: 0 }
-      - msg: { path: /save, args: ["win", 0] }
+      - msg: { path: /btn, args: true }
   - key: "2"
     send:
-      - msg: { path: /win1, args: 1 }
-      - msg: { path: /save, args: ["win", 1] }
+      - msg: { path: /btn, args: false }      
   - key: "3"
     send:
-      - msg: { path: /win1, args: 2 }
-      - msg: { path: /save, args: ["win", 2] }
+      - msg: { path: /btn/toggle, args: [] }      
+  - key: q
+    send:
+      - msg: { path: /amp/add-float, args: -0.07 }
 
+  - key: w
+    send:
+      - msg: { path: /amp/add-float, args: 0.07 }
 
+  - key: a
+    send:
+      - msg: { path: /synt/add-int, args: -1 }
+
+  - key: s
+    send:
+      - msg: { path: /synt/add-int, args: 1 }
+      

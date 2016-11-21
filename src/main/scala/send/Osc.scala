@@ -1,8 +1,9 @@
 package dragon.osc.send
 
-import scala.swing.audio.ui.SetWidget
+import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget}
 import scala.audio.osc._
 import dragon.osc.readargs._
+import dragon.osc.color._
 
 case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClient, selfClient: OscClient) {
     def close {
@@ -40,6 +41,44 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         server.listen[A](s"/${id}")(msg => widget.set(msg, true))(codec)
         server.listen[A](s"/cold/${id}")(msg => widget.set(msg, false))(codec)
     }
+
+    def addColorListener(id: String, widget: SetColor) {
+        server.listen[String](s"/${id}/color")(colorName => widget.setColor(Palette.palette(colorName)))
+    }
+
+    def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A) {
+        def go(prefix: String, isFireCallback: Boolean) {
+            server.listen[Unit](s"${prefix}/${id}/toggle"){ msg => 
+                val current = widget.get
+                widget.set(!current, isFireCallback)
+            }
+        }
+
+        go("", true)
+        go("/cold", false)
+    }   
+
+    def addFloatListener[A <: SetWidget[Float] with GetWidget[Float]](id: String, widget: A)(implicit codec: MessageCodec[Float]) {
+        def go(prefix: String, isFireCallback: Boolean) {
+            server.listen[Float](s"${prefix}/${id}/add-float") { value =>
+                val current = widget.get
+                widget.set(current + value, isFireCallback)
+            }
+        }
+        go("", true)
+        go("/cold", false)
+    }
+
+    def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {
+        def go(prefix: String, isFireCallback: Boolean) {
+            server.listen[Int](s"${prefix}/${id}/add-int") { value =>
+                val current = widget.get
+                widget.set(current + value, isFireCallback)
+            }
+        }
+        go("", true)
+        go("/cold", false)
+    }    
 }
 
 object Osc {

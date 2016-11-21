@@ -9,6 +9,8 @@ import dragon.osc.parse.const._
 import dragon.osc.parse.send._
 import dragon.osc.parse.syntax._
 
+case class Keys(keyEvents: List[HotKeyEvent])
+
 case class HotKeyEvent(key: HotKey, send: Send, guard: Option[KeyGuard])
 
 case class HotKey(modifiers: List[HotKey.Modifier], key: Key.Value)
@@ -17,7 +19,11 @@ case class KeyGuard(name: String, value: Object)
 object HotKey {
     type Modifier = Key.Value
 
-    def read: Widget[List[HotKeyEvent]] = Read.hotKeyEvents
+    def read: Widget[Keys] = Read.hotKeyEvents.map(Keys)
+
+    def readAttr: Attr[Keys] = new Attr[Keys] {
+        def run(obj: Lang) = read.run(obj).getOrElse(Keys(Nil))
+    }
 
     object Read {
         def hotKeyEvents: Widget[List[HotKeyEvent]] = Widget.listBy(hotKeyEvent)(Names.keys, xs => xs)
