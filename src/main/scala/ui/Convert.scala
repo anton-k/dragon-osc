@@ -74,7 +74,7 @@ object Convert {
     def withOrient[A](onHor: A, onVer: A): State[Context,A] = State.get.map(ctx => if (ctx.isHor) onHor else onVer)
 
     def mkTabs(st: St, keys: WindowKeys, xs: List[P.Page]) = 
-        State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(Util.tabs)
+        State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(pages => Util.tabs(pages, n => println(s"page ${n}")))
 
     def withListener[B, A <: Component with SetWidget[B] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[B]): A = {
         optId.foreach(id => st.addListener(id, widget)(codec))
