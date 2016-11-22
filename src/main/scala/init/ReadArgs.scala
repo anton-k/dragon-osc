@@ -3,7 +3,7 @@ package dragon.osc.readargs
 import java.io._
 import scala.util.Try
 
-case class Args(inPort: Int, outPort: Int, filename: String, debugMode: Boolean = false)
+case class Args(inPort: Int, outPort: Int, filename: String, debugMode: Boolean = false, lockClose: Boolean = false)
 
 object Utils {
     def resourceFile(p: String): String = 
@@ -24,6 +24,8 @@ object ReadArgs {
         val outPort = 7711
 
         val debugMode = true
-        Args(inPort, outPort, filename, debugMode)
+
+        val lockClose = true
+        Args(inPort, outPort, filename, debugMode, lockClose)
     }
 }

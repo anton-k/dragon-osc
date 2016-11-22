@@ -1,6 +1,6 @@
 package dragon.osc.ui
 
-import scala.swing.{Component,Swing,MainFrame,Dimension,BoxPanel,Orientation}
+import scala.swing.{Component,Swing,MainFrame,Dimension,BoxPanel,Orientation,Dialog}
 import scala.swing.audio.ui._
 import scala.audio.osc._
 import scala.swing.event._
@@ -10,17 +10,22 @@ import dragon.osc.state._
 import dragon.osc.color._
 import dragon.osc.parse.{ui => P}
 import dragon.osc.parse.send._
+import dragon.osc.parse.const._
 import dragon.osc.parse.hotkey._
 import dragon.osc.send._
+import dragon.osc.readargs._
 
 case class Root(windows: List[Window]) {
-    def show(st: St) = windows.foreach(_.show(st, st.close))
+    def show(st: St, args: Args) = windows.foreach(_.show(args, st, st.close))
 }
 
 case class Window(title: String, size: Option[(Int,Int)], content: Component, hotKeys: WindowKeys) { 
-    def show(st: St, onClose: => Unit) = {
+    def show(args: Args, st: St, onClose: => Unit) = {
         val window = this
         val ui = new MainFrame { self => 
+            import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
+            peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
+            
             title = window.title
 
             contents = new BoxPanel(Orientation.Vertical) {
@@ -38,11 +43,23 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component, ho
                 self.minimumSize = new Dimension(width, height)
             }       
 
-            override def closeOperation {                
+            override def closeOperation {  
+                if (!args.lockClose) {
+                    terminate
+                } else {
+                    val r = Dialog.showInput(contents.head, s"The app works in lock mode. Type ${Names.unlockPass} to close the app", initial="")
+                    r match {
+                      case Some(str) => if (str == Names.unlockPass) { terminate }
+                      case None => 
+                    }
+                }
+            }
+
+            def terminate {
                 println("Close now")
                 onClose                
                 Thread.sleep(1)          
-                System.exit(0)                
+                System.exit(0)            
             }
         }
         ui.visible = true        

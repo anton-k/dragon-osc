@@ -58,6 +58,7 @@ object Names {
     val keys = "keys"    
     val keyGuard = "when"
     val key = "key"
+    val unlockPass = "exit"
 }
 
 object Defaults {

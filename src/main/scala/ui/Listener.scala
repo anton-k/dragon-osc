@@ -37,7 +37,6 @@ object Listener {
     }
 }
 
-
 case class Listener(st: St, id: Option[String]) {
     def pure[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,A] = 
         pure(Listener.withListener[B,A](st)(id, widget))
