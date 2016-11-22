@@ -76,44 +76,13 @@ object Convert {
     def mkTabs(st: St, keys: WindowKeys, xs: List[P.Page]) = 
         State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(pages => Util.tabs(pages, n => println(s"page ${n}")))
 
-    def withListener[B, A <: Component with SetWidget[B] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[B]): A = {
-        optId.foreach(id => st.addListener(id, widget)(codec))
-        widget
-    }
-
-    def withToggleListener[A <: Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Boolean]): A = {        
-        val widget1 = withListener[Boolean,A](st)(optId, widget)             
-        optId.foreach(id => st.addToggleListener(id, widget1))
-        widget1
-    }
-
-    def withFloatListener[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Float]): A = {
-        val widget1 = withListener[Float,A](st)(optId, widget)
-        optId.foreach(id => st.addFloatListener(id, widget1)(codec))      
-        widget1        
-    } 
-
-    def withIntListener[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Int]): A = {
-        val widget1 = withListener[Int,A](st)(optId, widget)
-        optId.foreach(id => st.addIntListener(id, widget1)(codec))
-        widget1        
-    } 
-
 
     def convertUi(st: St, keys: WindowKeys)(ui: P.Ui): State[Context, Component] = {
         import Palette._
         import Codec._
         val id = ui.param.id
         val send = ui.param.osc
-
-        def listen[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,Component] = 
-            pure(withListener[B,A](st)(id, widget))
-
-        def listenFloat[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](widget: A)(implicit codec: MessageCodec[Float]): State[Context,Component] = 
-            pure(withFloatListener[A](st)(id, widget))
-
-        def listenInt[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](widget: A)(implicit codec: MessageCodec[Int]): State[Context,Component] = 
-            pure(withIntListener[A](st)(id, widget))
+        val listen = Listener(st, id)
 
         ui.sym match {
             case P.Hor(xs)      => modify(_.setHor).next(group(hor, xs, st, keys))
@@ -121,11 +90,11 @@ object Convert {
             case P.Tabs(xs)     => mkTabs(st, keys, xs)
             case P.Space                            => withOrient(Swing.HStrut(10), Swing.VStrut(10))
 
-            case P.Dial(init, color)                => listenFloat(Dial(init, palette(color))(onFloat(st, send)))
-            case P.HFader(init, color)              => listenFloat(HFader(init, palette(color))(onFloat(st, send)))
-            case P.VFader(init, color)              => listenFloat(VFader(init, palette(color))(onFloat(st, send)))
-            case P.Toggle(init, color, text)        => pure(withToggleListener(st)(id, ToggleButton(init, palette(color), Some(text))(onBoolean(st, send))))
-            case P.IntDial(init, color, range)      => listenInt(IntDial(init, range, palette(color))(onInt(st, send)))                     
+            case P.Dial(init, color)                => listen.float(Dial(init, palette(color))(onFloat(st, send)))
+            case P.HFader(init, color)              => listen.float(HFader(init, palette(color))(onFloat(st, send)))
+            case P.VFader(init, color)              => listen.float(VFader(init, palette(color))(onFloat(st, send)))
+            case P.Toggle(init, color, text)        => listen.toggle(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send)))
+            case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))                     
         }
     }       
 }
