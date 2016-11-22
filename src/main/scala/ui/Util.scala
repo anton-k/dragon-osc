@@ -3,11 +3,11 @@ package dragon.osc.ui
 import scala.swing._
 import scala.swing.event._
 
-import scala.swing.audio.ui.{SetWidget, GetWidget}
+import scala.swing.audio.ui.{SetWidget, GetWidget, SetColor}
 
 object Util {
-    def tabs(body: List[(String, Component)], onSet: Int => Unit): Component with SetWidget[Int] with GetWidget[Int] =         
-        new TabbedPane with SetWidget[Int] with GetWidget[Int] {
+    def tabs(body: List[(String, Component)], onSet: Int => Unit): Component with SetWidget[Int] with GetWidget[Int] with SetColor =         
+        new TabbedPane with SetWidget[Int] with GetWidget[Int] with SetColor {
             import TabbedPane._
             val pageSize = body.length
 
@@ -22,7 +22,7 @@ object Util {
             listenTo( this.selection )
 
             def set(n: Int, fireCallback: Boolean) {
-                val boundedN = if (n < 0) 0 else (if (n >= pageSize) (pageSize - 1) else n)
+                val boundedN = n % pageSize
                 this.selection.index = boundedN
 
                 if (fireCallback) {
@@ -32,5 +32,7 @@ object Util {
             }
 
             def get = this.selection.index
+
+            def setColor(c: Color) {}
         }
 }

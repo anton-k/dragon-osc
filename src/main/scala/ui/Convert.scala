@@ -73,8 +73,20 @@ object Convert {
 
     def withOrient[A](onHor: A, onVer: A): State[Context,A] = State.get.map(ctx => if (ctx.isHor) onHor else onVer)
 
-    def mkTabs(st: St, keys: WindowKeys, xs: List[P.Page]) = 
-        State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(pages => Util.tabs(pages, n => println(s"page ${n}")))
+    def mkTabs(st: St, send: Option[Send], keys: WindowKeys, xs: List[P.Page]) = {
+        val hotKeys = xs.map(page => st.getKeyMap(page.hotKeys)).toArray
+        val size = hotKeys.length
+
+        def cbk(n: Int) = {            
+            Codec.onInt(st, send)(n)
+            if (n < size) {
+                keys.setSpecific(hotKeys(n))
+            }            
+        }
+
+        State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(pages => Util.tabs(pages, cbk))
+    }
+
 
 
     def convertUi(st: St, keys: WindowKeys)(ui: P.Ui): State[Context, Component] = {
@@ -87,7 +99,7 @@ object Convert {
         ui.sym match {
             case P.Hor(xs)      => modify(_.setHor).next(group(hor, xs, st, keys))
             case P.Ver(xs)      => modify(_.setVer).next(group(ver, xs, st, keys))
-            case P.Tabs(xs)     => mkTabs(st, keys, xs)
+            case P.Tabs(xs)     => mkTabs(st, send, keys, xs).flatMap(listen.int)
             case P.Space                            => withOrient(Swing.HStrut(10), Swing.VStrut(10))
 
             case P.Dial(init, color)                => listen.float(Dial(init, palette(color))(onFloat(st, send)))
