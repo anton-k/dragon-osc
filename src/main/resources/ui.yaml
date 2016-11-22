@@ -114,8 +114,3 @@ keys:
     send:
       - msg: { path: /btn/color, args: black }      
 
-
-  
-
-
-      

@@ -8,8 +8,11 @@ import collection.JavaConversions._
 import scala.util.Try
 
 object ReadYaml {
-    def loadFile(filename: String) = {
-        val input = new FileInputStream(new File(filename))
+
+    def loadFile(filename: String): Object = loadFile(new File(filename))
+
+    def loadFile(file: File): Object = {
+        val input = new FileInputStream(file)
         val yaml = new Yaml()
         val res = yaml.load(input)
         input.close()

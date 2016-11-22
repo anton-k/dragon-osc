@@ -1,5 +1,7 @@
 package dragon.osc.parse.syntax
 
+import java.io._
+
 import dragon.osc.parse.yaml._
 import dragon.osc.parse.util._
 
@@ -30,6 +32,7 @@ case class MapSym(items: Map[String, Lang]) extends Lang
 
 object Lang {
     def readFile(filename: String): Option[Lang] = read(ReadYaml.loadFile(filename))
+    def readFile(file: File): Option[Lang] = read(ReadYaml.loadFile(file))
 
     def read(str: String): Option[Lang] = read(ReadYaml.loadString(str))
 

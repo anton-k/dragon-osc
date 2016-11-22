@@ -91,10 +91,13 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
 
 object Osc {
     def apply(args: Args): Osc = {
-        val defaultClient = OscClient(args.inPort)
         val selfClient = OscClient(args.outPort)
-        val oscServer = OscServer(args.outPort)        
-        val clientPool = OscClientPool(Map[String,OscClient](), defaultClient, selfClient)
+        val defaultClient = selfClient     
+        Thread.sleep(10)   
+        println("server GET")
+        val oscServer = OscServer.init(args.outPort).get
+        Thread.sleep(10)           
+        val clientPool = OscClientPool(args.inPort.map({ case (k, v) => (k, OscClient(v)) }), defaultClient, selfClient)
         Osc(clientPool, oscServer, args.debugMode)
     }
 }
