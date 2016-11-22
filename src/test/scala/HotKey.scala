@@ -63,7 +63,7 @@ class HotKeyTest extends FunSuite {
     }
 
 
-    def check(str: String, res: Option[List[HotKeyEvent]]) =
+    def check(str: String, res: Option[Keys]) =
         assert(Lang.read(str).flatMap(HotKey.read.run) == res)
 
     test ("keys 1") {
@@ -79,10 +79,14 @@ class HotKeyTest extends FunSuite {
                     - msg:
                         path: /cps
                         args: [false]
-        """, Some(List(
+        """, Some(Keys(List(
                 HotKeyEvent(HotKey(Nil, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None ),
                 HotKeyEvent(HotKey(Nil, Key.B), Send(List(Msg(Defaults.client, "/cps", List(PrimArg(PrimBoolean(false))))), Map()), None )
-            )))
+            ))))
+    }
+
+    test ("empty keys") {
+        check("window: {}", Some(Keys(Nil)))
     }
 
 }

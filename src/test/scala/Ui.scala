@@ -5,6 +5,7 @@ import dragon.osc.parse.syntax._
 import dragon.osc.parse.ui._
 import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
+import dragon.osc.parse.hotkey._
 
 class PrimWidgets extends FunSuite {
     import Read._
@@ -103,6 +104,7 @@ class CompoundWidgets extends FunSuite {
 
 class UiCompoundWidgets extends FunSuite {
     import Read._
+    val emptyKeys = Keys(Nil)
 
     def check(str: String, res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
@@ -121,20 +123,20 @@ class UiCompoundWidgets extends FunSuite {
 
     test("tabs") {
         check("tabs: [ page: { title: page1, content: {dial: {}} }, page: { title: page2, content: {dial: {}} } ]",
-            Some(Ui(Tabs(List(Page("page1", p), Page("page2", p))))))
+            Some(Ui(Tabs(List(Page("page1", p, emptyKeys), Page("page2", p, emptyKeys))))))
     }
 
      def check[A](str: String, widget: Widget[A], res: A) = 
         assert(Lang.read(str).flatMap(x => widget.run(x)) == Some(res))
 
     test("window") {
-        check("window: { title: Supper App, content: {dial: {}} }", window, Window("Supper App", None, p))
-        check("window: { title: Supper App, size: [230, 500], content: {dial: {}} }", window, Window("Supper App", Some((230, 500)), p))
+        check("window: { title: Supper App, content: {dial: {}} }", window, Window("Supper App", None, p, emptyKeys))
+        check("window: { title: Supper App, size: [230, 500], content: {dial: {}} }", window, Window("Supper App", Some((230, 500)), p, emptyKeys))
     }
 
-    val w = Window(Defaults.string, None, emptyUi)
+    val w = Window(Defaults.string, None, emptyUi, emptyKeys)
     test("root") {
-        check[Root]("main: [window: {}, window: {}]", root, Root(List(w,w)))
+        check[Root]("main: [window: {}, window: {}]", root, Root(List(w,w), emptyKeys))
     }
 }
 

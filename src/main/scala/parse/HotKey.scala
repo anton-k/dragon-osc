@@ -19,7 +19,9 @@ case class KeyGuard(name: String, value: Object)
 object HotKey {
     type Modifier = Key.Value
 
-    def read: Widget[Keys] = Read.hotKeyEvents.map(Keys)
+    def read: Widget[Keys] = new Widget[Keys] {
+        def run(obj: Lang) = Read.hotKeyEvents.map(Keys).run(obj) orElse Some(Keys(Nil))
+    } 
 
     def readAttr: Attr[Keys] = new Attr[Keys] {
         def run(obj: Lang) = read.run(obj).getOrElse(Keys(Nil))
