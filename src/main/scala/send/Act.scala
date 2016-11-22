@@ -1,6 +1,6 @@
 package dragon.osc.send
 
-import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget}
+import scala.swing.audio.ui.{SetWidget, SetColor, SetText, SetTextList, GetWidget}
 import scala.audio.osc.MessageCodec
 
 import dragon.osc.readargs._
@@ -62,6 +62,10 @@ case class St(osc: Osc, memory: Memory) {
 
     def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {
         osc.addIntListener(id, widget)
+    }
+
+    def addTextListener[A <: SetText](id: String, widget: A) {
+        osc.addTextListener(id, widget)
     }
 
 }

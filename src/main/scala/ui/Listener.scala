@@ -30,21 +30,29 @@ object Listener {
         optId.foreach(id => st.addIntListener(id, widget1)(codec))
         widget1        
     } 
+
+    def withTextListener[A <: Component with SetText](st: St)(optId: Option[String], widget: A): A = {
+        optId.foreach(id => st.addTextListener(id, widget))
+        widget
+    }
 }
 
 
 case class Listener(st: St, id: Option[String]) {
-    def pure[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,Component] = 
+    def pure[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,A] = 
         pure(Listener.withListener[B,A](st)(id, widget))
 
-    def float[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](widget: A)(implicit codec: MessageCodec[Float]): State[Context,Component] = 
+    def float[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](widget: A)(implicit codec: MessageCodec[Float]): State[Context,A] = 
         pure(Listener.withFloatListener[A](st)(id, widget))
 
-    def int[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](widget: A)(implicit codec: MessageCodec[Int]): State[Context,Component] = 
+    def int[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](widget: A)(implicit codec: MessageCodec[Int]): State[Context,A] = 
         pure(Listener.withIntListener[A](st)(id, widget))
 
-    def toggle[A <: Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor](widget: A)(implicit codec: MessageCodec[Boolean]): State[Context,Component] = 
+    def toggle[A <: Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor](widget: A)(implicit codec: MessageCodec[Boolean]): State[Context,A] = 
         pure(Listener.withToggleListener(st)(id, widget))
+
+    def text[A <: Component with SetText](widget: A): A = 
+        Listener.withTextListener(st)(id, widget)
 
     private def pure[A](a: A) = State.pure[Context,A](a)
 }

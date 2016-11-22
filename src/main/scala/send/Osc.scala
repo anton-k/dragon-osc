@@ -1,6 +1,6 @@
 package dragon.osc.send
 
-import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget}
+import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList}
 import scala.audio.osc._
 import dragon.osc.readargs._
 import dragon.osc.color._
@@ -43,7 +43,15 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     }
 
     def addColorListener(id: String, widget: SetColor) {
-        server.listen[String](s"/${id}/color")(colorName => widget.setColor(Palette.palette(colorName)))
+        server.listen[String](s"/${id}/set-color")(colorName => widget.setColor(Palette.palette(colorName)))
+    }
+
+    def addTextListener(id: String, widget: SetText) {
+        server.listen[String](s"/${id}/set-text")(name => widget.setText(name))
+    }
+
+    def addTextListListener(id: String, widget: SetTextList) {
+        server.listen[(Int,String)](s"/${id}/set-text-list")({ case (pos, name) => widget.setTextAt(pos, name) })
     }
 
     def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A) {

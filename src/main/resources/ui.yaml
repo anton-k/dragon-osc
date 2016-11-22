@@ -41,8 +41,13 @@ main:
                 toggle:
                   init: true
                   text: play
+                id: btn2
                 send:
                   bool: [["q", 1], ["q", 2]]                
+              keys:
+                - key: h
+                  send:
+                    - msg: { path: /btn2/toggle }
           - page:
               title: "3"
               content:
@@ -50,8 +55,13 @@ main:
                   init: true
                   text: play
                   color: orange
+                id: btn3
                 send:
                   bool: [["q", 1], ["q", 2]]                    
+              keys:
+                - key: h
+                  send:
+                    - msg: { path: /btn3/toggle }
         id: tabs        
   - window:
       title: sets
@@ -94,6 +104,16 @@ keys:
   - key: "8"
     send:
       - msg: { path: /tabs/add-int, args: 1 }
+  - key: "i"
+    send:
+      - msg: { path: /btn/color, args: olive }      
+  - key: "o"
+    send:
+      - msg: { path: /btn/color, args: red }  
+  - key: "p"
+    send:
+      - msg: { path: /btn/color, args: black }      
+
 
   
 

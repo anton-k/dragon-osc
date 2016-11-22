@@ -105,7 +105,7 @@ object Convert {
             case P.Dial(init, color)                => listen.float(Dial(init, palette(color))(onFloat(st, send)))
             case P.HFader(init, color)              => listen.float(HFader(init, palette(color))(onFloat(st, send)))
             case P.VFader(init, color)              => listen.float(VFader(init, palette(color))(onFloat(st, send)))
-            case P.Toggle(init, color, text)        => listen.toggle(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send)))
+            case P.Toggle(init, color, text)        => listen.toggle(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send))).map(listen.text)
             case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))                     
         }
     }       
