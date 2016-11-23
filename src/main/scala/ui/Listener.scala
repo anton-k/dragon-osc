@@ -7,51 +7,43 @@ import dragon.osc.state._
 import scala.audio.osc._
 
 object Listener {
+    def withId[A](optId: Option[String], widget: A)(f: (String, A) => Unit): A = {
+        optId.foreach(id => f(id, widget))
+        widget
+    }
 
     def withListener[B, A <: Component with SetWidget[B] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[B]): A = {
         optId.foreach(id => st.addListener(id, widget)(codec))
         widget
     }
-
-    def withToggleListener[A <: Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Boolean]): A = {        
-        val widget1 = withListener[Boolean,A](st)(optId, widget)             
-        optId.foreach(id => st.addToggleListener(id, widget1))
-        widget1
-    }
-
-    def withFloatListener[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Float]): A = {
-        val widget1 = withListener[Float,A](st)(optId, widget)
-        optId.foreach(id => st.addFloatListener(id, widget1)(codec))      
-        widget1        
-    } 
-
-    def withIntListener[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[Int]): A = {
-        val widget1 = withListener[Int,A](st)(optId, widget)
-        optId.foreach(id => st.addIntListener(id, widget1)(codec))
-        widget1        
-    } 
-
-    def withTextListener[A <: Component with SetText](st: St)(optId: Option[String], widget: A): A = {
-        optId.foreach(id => st.addTextListener(id, widget))
-        widget
-    }
 }
 
 case class Listener(st: St, id: Option[String]) {
+    import Listener._
+
     def pure[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,A] = 
         pure(Listener.withListener[B,A](st)(id, widget))
 
     def float[A <: Component with SetWidget[Float] with GetWidget[Float] with SetColor](widget: A)(implicit codec: MessageCodec[Float]): State[Context,A] = 
-        pure(Listener.withFloatListener[A](st)(id, widget))
+        pure(withId(id, widget) { (ix, w) => st.osc.addFloatListener(ix, w) })
+
+    def string[A <: Component with SetWidget[String] with GetWidget[String] with SetColor](widget: A)(implicit codec: MessageCodec[String]): State[Context,A] = 
+        pure(withId(id, widget) { (ix, w) => st.osc.addStringListener(ix, w) })
 
     def int[A <: Component with SetWidget[Int] with GetWidget[Int] with SetColor](widget: A)(implicit codec: MessageCodec[Int]): State[Context,A] = 
-        pure(Listener.withIntListener[A](st)(id, widget))
+        pure(withId(id, widget) { (ix, w) => st.osc.addIntListener(ix, w) })
 
     def toggle[A <: Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor](widget: A)(implicit codec: MessageCodec[Boolean]): State[Context,A] = 
-        pure(Listener.withToggleListener(st)(id, widget))
+        pure(withId(id, widget) { (ix, w) => st.osc.addToggleListener(ix, w) })
+
+    def float2[A <: Component with SetWidget[(Float,Float)] with GetWidget[(Float,Float)] with SetColor](widget: A)(implicit codec: MessageCodec[(Float,Float)]): State[Context,A] = 
+        pure(withId(id, widget) { (ix, w) => st.osc.addFloatListener2(ix, w) })
 
     def text[A <: Component with SetText](widget: A): A = 
-        Listener.withTextListener(st)(id, widget)
+        withId(id, widget) { (ix, w) => st.osc.addTextListener(ix, w) }
+
+    def textList[A <: Component with SetTextList](widget: A): A = 
+        withId(id, widget) { (ix, w) => st.osc.addTextListListener(ix, w) }
 
     private def pure[A](a: A) = State.pure[Context,A](a)
 }

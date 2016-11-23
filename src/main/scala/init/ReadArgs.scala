@@ -19,7 +19,7 @@ object Utils {
 object ReadArgs {
     def apply(args: Array[String]): Args = {
         parser.parse(args, Args()) match {
-            case Some(args) => { println(args.inPort); args }
+            case Some(args) => args
             case None => { println("Please use --help argument for usage"); Args() }
         }
     }

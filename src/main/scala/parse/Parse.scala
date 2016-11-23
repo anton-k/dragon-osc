@@ -11,8 +11,11 @@ object Parse {
     def file(filename: String): Option[Root] =
         Lang.readFile(filename).flatMap(symbol)
 
-    def file(filename: File): Option[Root] =
-        Lang.readFile(filename).flatMap(symbol)        
+    def file(file: File): Option[Root] =
+        if (file.exists() && !file.isDirectory()) { 
+            Lang.readFile(file).flatMap(symbol)        
+        } else None
+        
 
     def string(str: String): Option[Root] = 
         Lang.read(str).flatMap(symbol)

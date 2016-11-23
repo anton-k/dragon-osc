@@ -77,6 +77,17 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         go("/cold", false)
     }
 
+    def addFloatListener2[A <: SetWidget[(Float,Float)] with GetWidget[(Float,Float)]](id: String, widget: A)(implicit codec: MessageCodec[(Float,Float)]) {
+        def go(prefix: String, isFireCallback: Boolean) {
+            server.listen[(Float,Float)](s"${prefix}/${id}/add-float") { value =>
+                val current = widget.get
+                widget.set((current._1 + value._1, current._2 + value._2), isFireCallback)
+            }
+        }
+        go("", true)
+        go("/cold", false)
+    }    
+
     def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {
         def go(prefix: String, isFireCallback: Boolean) {
             server.listen[Int](s"${prefix}/${id}/add-int") { value =>

@@ -22,7 +22,7 @@ object Util {
             listenTo( this.selection )
 
             def set(n: Int, fireCallback: Boolean) {
-                val boundedN = n % pageSize
+                val boundedN = mod(n, pageSize)
                 this.selection.index = boundedN
 
                 if (fireCallback) {
@@ -35,4 +35,11 @@ object Util {
 
             def setColor(c: Color) {}
         }
+
+
+    def mod(a: Int, b: Int) = {
+        val res = a % b
+        if (res < 0) (res + b)
+        else res
+    }
 }

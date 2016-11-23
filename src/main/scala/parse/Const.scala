@@ -17,6 +17,8 @@ object Names {
     val xyPadRange = "xy-pad-range"
     val dropDownList = "drop-down-list"
     val textInput = "text-input"
+    val texts = "texts"
+    val allowDeselect = "deselect"
     val tabs = "tabs"
     val page = "page"
     val window = "window"
@@ -59,6 +61,11 @@ object Names {
     val keyGuard = "when"
     val key = "key"
     val unlockPass = "exit"
+    val textLength = "text-length"
+
+    object Error {
+        val failedToParse = "File parsing failed. Check if the file exists and if it is in yaml format."
+    }
 }
 
 object Defaults {
@@ -72,4 +79,7 @@ object Defaults {
     val rangeInt = (0, 100)
     val client = "self"
     val path = "/"
+    val size1 = 5
+    val allowDeselect = true
+    val textLength = 7
 }

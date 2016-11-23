@@ -51,23 +51,6 @@ case class St(osc: Osc, memory: Memory) {
         osc.addListener(id, widget)(codec)
         osc.addColorListener(id, widget)
     }
-
-    def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A) {
-        osc.addToggleListener(id, widget)
-    }
-
-    def addFloatListener[A <: SetWidget[Float] with GetWidget[Float]](id: String, widget: A)(implicit codec: MessageCodec[Float]) {
-        osc.addFloatListener(id, widget)
-    }
-
-    def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {
-        osc.addIntListener(id, widget)
-    }
-
-    def addTextListener[A <: SetText](id: String, widget: A) {
-        osc.addTextListener(id, widget)
-    }
-
 }
 
 object St {

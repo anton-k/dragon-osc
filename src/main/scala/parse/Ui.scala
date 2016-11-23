@@ -36,6 +36,16 @@ case class IntDial(init: Int, color: String, range: (Int, Int)) extends Sym
 case class Button(color: String, text: String)                  extends Sym
 case class Label(color: String, text: String)                   extends Sym
 
+case class HCheck(init: Int, size: Int, color: String, texts: List[String], allowDeselect: Boolean) extends Sym
+case class VCheck(init: Int, size: Int, color: String, texts: List[String], allowDeselect: Boolean) extends Sym
+
+case class XYPad(init: (Float, Float), color: String)           extends Sym
+case class HFaderRange(init: (Float, Float), color: String)     extends Sym
+case class VFaderRange(init: (Float, Float), color: String)     extends Sym
+
+case class DropDownList(init: Int, texts: List[String])         extends Sym
+case class TextInput(init: Option[String], color: String, textLength: Int) extends Sym
+
 // -----------------------------------------
 
 object Read {    
@@ -52,7 +62,15 @@ object Read {
     def toggle  = Widget.prim(Names.toggle,  lift3(Toggle, initBoolean, color, text))
     def intDial = Widget.prim(Names.intDial, lift3(IntDial, initInt, color, rangeInt))
     def label   = Widget.prim(Names.label,   lift2(Label,  color, text))
-    def button  = Widget.prim(Names.button,  lift2(Button, color, text))
+    def button  = Widget.prim(Names.button,  lift2(Button, color, text))    
+    def hcheck  = Widget.prim(Names.hcheck,  lift5(HCheck, initInt, size1, color, texts, allowDeselect))
+    def vcheck  = Widget.prim(Names.vcheck,  lift5(VCheck, initInt, size1, color, texts, allowDeselect))
+    def xyPad   = Widget.prim(Names.xyPad,   lift2(XYPad, initFloat2, color))
+    def hfaderRange   = Widget.prim(Names.hfaderRange,   lift2(HFaderRange, initFloat2, color))
+    def vfaderRange   = Widget.prim(Names.vfaderRange,   lift2(VFaderRange, initFloat2, color))
+
+    def dropDownList = Widget.prim(Names.dropDownList, lift2(DropDownList, initInt, texts))
+    def textInput = Widget.prim(Names.textInput, lift3(TextInput, initOptionString, color, textLength))
 
     def hor = list(Names.hor, Hor)
     def ver = list(Names.ver, Ver)
@@ -62,14 +80,22 @@ object Read {
     def tabs = Widget.listBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))  
 
     def widgets: Stream[Widget[Sym]] = 
+        hor #:: 
+        ver #:: 
         dial #:: 
         hfader #:: 
         vfader #:: 
         toggle #:: 
-        intDial #:: 
-        label #:: 
-        hor #:: 
-        ver #:: 
+        intDial #::         
+        label #::
+        button #:: 
+        hcheck #::
+        vcheck #::
+        xyPad #::
+        hfaderRange #::
+        vfaderRange #::
+        dropDownList #::
+        textInput #::
         tabs #:: 
         Stream.empty[Widget[Sym]]
 

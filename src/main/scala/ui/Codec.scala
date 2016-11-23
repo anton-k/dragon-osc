@@ -5,10 +5,13 @@ import dragon.osc.parse.send._
 import dragon.osc.send._
 
 object Codec {
-    def onFloat(st: St, optSend: Option[Send])   = onArg[Float](st, optSend)(MessageCodec.floatOscMessageCodec, ToPlainList.floatArg)
+    def unPair[A,B,C](f: ((A,B)) => C): (A,B) => C = (x, y) => f((x, y))
+
+    def onFloat(st: St, optSend: Option[Send])   = onArg[Float](st, optSend)(MessageCodec.floatOscMessageCodec, ToPlainList.floatArg)    
     def onInt(st: St, optSend: Option[Send])     = onArg[Int](st, optSend)(MessageCodec.intOscMessageCodec, ToPlainList.intArg)
     def onBoolean(st: St, optSend: Option[Send]) = onArg[Boolean](st, optSend)(MessageCodec.booleanOscMessageCodec, ToPlainList.booleanArg)
-    def onString(st: St, optSend: Option[Send]) = onArg[String](st, optSend)(MessageCodec.stringOscMessageCodec, ToPlainList.stringArg)
+    def onString(st: St, optSend: Option[Send])  = onArg[String](st, optSend)(MessageCodec.stringOscMessageCodec, ToPlainList.stringArg)
+    def onFloat2(st: St, optSend: Option[Send])  = unPair(onArg[(Float,Float)](st, optSend)(MessageCodec.tuple2(MessageCodec.floatOscMessageCodec, MessageCodec.floatOscMessageCodec), ToPlainList.tupleArg2(ToPlainList.floatArg, ToPlainList.floatArg)))
 
     def onArg[A](st: St, optSend: Option[Send])(oscCodec: MessageCodec[A], caseCodec: ToPlainList[A]): (A => Unit) = {
         val specSend = optSend.map(st.compileSend)
@@ -17,13 +20,26 @@ object Codec {
             specSend.foreach(f => f(oscCodec.toMessage(input), caseCodec.toPlainList(input)))
         }
         cbk
-    } }
+    }
+
+    def onButton(st: St, optSend: Option[Send]) = {
+        val specSend = optSend.map(st.compileSend)
+
+        def cbk {
+            specSend.foreach(f => f(Nil, Nil))
+        }
+        
+        cbk
+    }
+}
+
 
 trait ToPlainList[A] {
     def toPlainList(a: A): List[Object]
 }
 
-object ToPlainList {    
+object ToPlainList {  
+    implicit val unitArg = new ToPlainList[Unit] { def toPlainList(a: Unit) = Nil }  
     implicit val floatArg = new ToPlainList[Float] { def toPlainList(a: Float) = List(a.asInstanceOf[Object]) }
     implicit val intArg = new ToPlainList[Int] { def toPlainList(a: Int) = List(a.asInstanceOf[Object]) }
     implicit val booleanArg = new ToPlainList[Boolean] { def toPlainList(a: Boolean) = List(a.asInstanceOf[Object]) }
