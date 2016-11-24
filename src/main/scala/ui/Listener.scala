@@ -19,6 +19,7 @@ object Listener {
 }
 
 case class Listener(st: St, id: Option[String]) {
+    type Float2 = (Float, Float)
     import Listener._
 
     def pure[B, A <: Component with SetWidget[B] with SetColor](widget: A)(implicit codec: MessageCodec[B]): State[Context,A] = 
@@ -38,6 +39,9 @@ case class Listener(st: St, id: Option[String]) {
 
     def float2[A <: Component with SetWidget[(Float,Float)] with GetWidget[(Float,Float)] with SetColor](widget: A)(implicit codec: MessageCodec[(Float,Float)]): State[Context,A] = 
         pure(withId(id, widget) { (ix, w) => st.osc.addFloatListener2(ix, w) })
+
+    def float4[A <: Component with SetWidget[(Float2,Float2)] with GetWidget[(Float2,Float2)] with SetColor](widget: A)(implicit codec: MessageCodec[(Float2,Float2)]): State[Context,A] = 
+        pure(withId(id, widget) { (ix, w) => st.osc.addFloatListener4(ix, w) })
 
     def text[A <: Component with SetText](widget: A): A = 
         withId(id, widget) { (ix, w) => st.osc.addTextListener(ix, w) }

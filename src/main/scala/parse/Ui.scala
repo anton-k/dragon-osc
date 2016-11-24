@@ -40,8 +40,10 @@ case class HCheck(init: Int, size: Int, color: String, texts: List[String], allo
 case class VCheck(init: Int, size: Int, color: String, texts: List[String], allowDeselect: Boolean) extends Sym
 
 case class XYPad(init: (Float, Float), color: String)           extends Sym
+
 case class HFaderRange(init: (Float, Float), color: String)     extends Sym
 case class VFaderRange(init: (Float, Float), color: String)     extends Sym
+case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: String) extends Sym
 
 case class DropDownList(init: Int, texts: List[String])         extends Sym
 case class TextInput(init: Option[String], color: String, textLength: Int) extends Sym
@@ -66,8 +68,9 @@ object Read {
     def hcheck  = Widget.prim(Names.hcheck,  lift5(HCheck, initInt, size1, color, texts, allowDeselect))
     def vcheck  = Widget.prim(Names.vcheck,  lift5(VCheck, initInt, size1, color, texts, allowDeselect))
     def xyPad   = Widget.prim(Names.xyPad,   lift2(XYPad, initFloat2, color))
-    def hfaderRange   = Widget.prim(Names.hfaderRange,   lift2(HFaderRange, initFloat2, color))
-    def vfaderRange   = Widget.prim(Names.vfaderRange,   lift2(VFaderRange, initFloat2, color))
+    def hfaderRange  = Widget.prim(Names.hfaderRange,   lift2(HFaderRange, initRange, color))
+    def vfaderRange  = Widget.prim(Names.vfaderRange,   lift2(VFaderRange, initRange, color))
+    def xyPadRange   = Widget.prim(Names.xyPadRange, lift3(XYPadRange, initX, initY, color))
 
     def dropDownList = Widget.prim(Names.dropDownList, lift2(DropDownList, initInt, texts))
     def textInput = Widget.prim(Names.textInput, lift3(TextInput, initOptionString, color, textLength))
@@ -80,8 +83,6 @@ object Read {
     def tabs = Widget.listBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))  
 
     def widgets: Stream[Widget[Sym]] = 
-        hor #:: 
-        ver #:: 
         dial #:: 
         hfader #:: 
         vfader #:: 
@@ -94,8 +95,11 @@ object Read {
         xyPad #::
         hfaderRange #::
         vfaderRange #::
+        xyPadRange #::
         dropDownList #::
         textInput #::
+        hor #:: 
+        ver #:: 
         tabs #:: 
         Stream.empty[Widget[Sym]]
 

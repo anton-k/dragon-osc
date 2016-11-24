@@ -70,6 +70,9 @@ object Attr {
     def texts = attr[List[String]](Names.text, readStringList, Nil)
     def initOptionString = attr[Option[String]](Names.init, readOptionString, None)
     def textLength = attr[Int](Names.textLength, readInt, Defaults.textLength)
+    def initRange = attr[(Float,Float)](Names.init, readFloat2, Defaults.range)
+    def initX = attr[(Float,Float)](Names.initX, readFloat2, Defaults.range)
+    def initY = attr[(Float,Float)](Names.initY, readFloat2, Defaults.range)
 
     //---------------------------------------------------------
     // field readers

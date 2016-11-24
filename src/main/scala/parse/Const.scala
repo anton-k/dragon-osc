@@ -46,6 +46,8 @@ object Names {
 
     val color = "color"
     val init  = "init"
+    val initX = "init-x"
+    val initY = "init-y"
     val text = "text"
     val msg = "msg"
     val client = "client"
@@ -81,5 +83,5 @@ object Defaults {
     val path = "/"
     val size1 = 5
     val allowDeselect = true
-    val textLength = 7
+    val textLength = 7    
 }

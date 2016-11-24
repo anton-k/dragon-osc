@@ -131,6 +131,7 @@ object Convert {
             case P.XYPad((initX, initY), color)     => listen.float2(XYPad(initX, initY, palette(color))(onFloat2(st, send)))
             case P.HFaderRange((initX, initY), color)     => listen.float2(HFaderRange((initX, initY), palette(color))(onFloat2(st, send)))
             case P.VFaderRange((initX, initY), color)     => listen.float2(VFaderRange((initX, initY), palette(color))(onFloat2(st, send)))
+            case P.XYPadRange(initX, initY, color) => listen.float4(XYPadRange(initX, initY, palette(color))(onFloat4(st, send)))
 
             case P.DropDownList(init, texts)        => listen.int(DropDownList(init, texts)(onInt(st, send)))            
             case P.TextInput(init, color, textLength) => listen.string(TextInput(init, palette(color), textLength)(onString(st, send)))
