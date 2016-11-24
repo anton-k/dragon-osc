@@ -84,4 +84,6 @@ object Defaults {
     val size1 = 5
     val allowDeselect = true
     val textLength = 7    
+    val multiToggleSize = (2, 4)
+    val textColor = "black"
 }

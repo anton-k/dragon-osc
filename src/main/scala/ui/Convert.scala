@@ -128,6 +128,8 @@ object Convert {
             case P.HCheck(init, len, color, texts, allowDeselect)  => listen.int(HCheck(init, len, palette(color), texts, allowDeselect)(onInt(st, send))).map(listen.textList)
             case P.VCheck(init, len, color, texts, allowDeselect)  => listen.int(VCheck(init, len, palette(color), texts, allowDeselect)(onInt(st, send))).map(listen.textList)
 
+            case P.MultiToggle(init, (sizeX, sizeY), color, texts) => listen.multiToggle(MultiToggle(init, sizeX, sizeY, palette(color), palette(Defaults.textColor), texts)(onMultiToggle(st, send))).map(listen.textList)
+
             case P.XYPad((initX, initY), color)     => listen.float2(XYPad(initX, initY, palette(color))(onFloat2(st, send)))
             case P.HFaderRange((initX, initY), color)     => listen.float2(HFaderRange((initX, initY), palette(color))(onFloat2(st, send)))
             case P.VFaderRange((initX, initY), color)     => listen.float2(VFaderRange((initX, initY), palette(color))(onFloat2(st, send)))

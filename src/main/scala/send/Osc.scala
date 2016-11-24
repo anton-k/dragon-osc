@@ -1,6 +1,6 @@
 package dragon.osc.send
 
-import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList}
+import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList, MultiToggle}
 import scala.audio.osc._
 import dragon.osc.readargs._
 import dragon.osc.color._
@@ -115,6 +115,20 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         go("", true)
         go("/cold", false)
     }  
+
+    def addMultiToggleListener(id: String, widget: MultiToggle)(implicit codec: MessageCodec[(Int, Int)]) {
+         def go(prefix: String, isFireCallback: Boolean) {
+            server.listen[(Int,Int)](s"${prefix}/${id}/multi-toggle"){ msg => 
+                val current = widget.getAt(msg)
+                widget.set((msg, !current), isFireCallback)
+                println("got it")
+            }
+        }
+
+        go("", true)
+        go("/cold", false)       
+    }
+
 }
 
 object Osc {

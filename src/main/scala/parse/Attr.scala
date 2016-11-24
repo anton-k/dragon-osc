@@ -73,6 +73,8 @@ object Attr {
     def initRange = attr[(Float,Float)](Names.init, readFloat2, Defaults.range)
     def initX = attr[(Float,Float)](Names.initX, readFloat2, Defaults.range)
     def initY = attr[(Float,Float)](Names.initY, readFloat2, Defaults.range)
+    def initMultiToggle = attr[Set[(Int,Int)]](Names.init, readMultiToggleInit, Set())
+    def multiToggleSize = attr[(Int,Int)](Names.size, readRangeInt, Defaults.multiToggleSize)
 
     //---------------------------------------------------------
     // field readers
@@ -114,6 +116,11 @@ object Attr {
 
     def readOptionString(obj: Lang) = obj match {
         case PrimSym(PrimString(x)) => if (x.isEmpty) None else Some(Some(x))
+        case _ => None
+    }
+
+    def readMultiToggleInit(obj: Lang) = obj match {
+        case ListSym(xs) => Util.optionMapM(xs)(readRangeInt).map(_.toSet)
         case _ => None
     }
 

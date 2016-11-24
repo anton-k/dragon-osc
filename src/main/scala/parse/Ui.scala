@@ -36,6 +36,8 @@ case class IntDial(init: Int, color: String, range: (Int, Int)) extends Sym
 case class Button(color: String, text: String)                  extends Sym
 case class Label(color: String, text: String)                   extends Sym
 
+case class MultiToggle(init: Set[(Int,Int)], size: (Int, Int), color: String, texts: List[String]) extends Sym
+
 case class HCheck(init: Int, size: Int, color: String, texts: List[String], allowDeselect: Boolean) extends Sym
 case class VCheck(init: Int, size: Int, color: String, texts: List[String], allowDeselect: Boolean) extends Sym
 
@@ -68,6 +70,9 @@ object Read {
     def hcheck  = Widget.prim(Names.hcheck,  lift5(HCheck, initInt, size1, color, texts, allowDeselect))
     def vcheck  = Widget.prim(Names.vcheck,  lift5(VCheck, initInt, size1, color, texts, allowDeselect))
     def xyPad   = Widget.prim(Names.xyPad,   lift2(XYPad, initFloat2, color))
+
+    def multiToggle = Widget.prim(Names.multiToggle, lift4(MultiToggle, initMultiToggle, multiToggleSize, color, texts))
+
     def hfaderRange  = Widget.prim(Names.hfaderRange,   lift2(HFaderRange, initRange, color))
     def vfaderRange  = Widget.prim(Names.vfaderRange,   lift2(VFaderRange, initRange, color))
     def xyPadRange   = Widget.prim(Names.xyPadRange, lift3(XYPadRange, initX, initY, color))
@@ -98,6 +103,7 @@ object Read {
         xyPadRange #::
         dropDownList #::
         textInput #::
+        multiToggle #::
         hor #:: 
         ver #:: 
         tabs #:: 

@@ -43,6 +43,9 @@ case class Listener(st: St, id: Option[String]) {
     def float4[A <: Component with SetWidget[(Float2,Float2)] with GetWidget[(Float2,Float2)] with SetColor](widget: A)(implicit codec: MessageCodec[(Float2,Float2)]): State[Context,A] = 
         pure(withId(id, widget) { (ix, w) => st.osc.addFloatListener4(ix, w) })
 
+    def multiToggle(widget: MultiToggle) = 
+        pure(withId(id, widget) { (ix, w) => st.osc.addMultiToggleListener(ix, w) })
+
     def text[A <: Component with SetText](widget: A): A = 
         withId(id, widget) { (ix, w) => st.osc.addTextListener(ix, w) }
 
