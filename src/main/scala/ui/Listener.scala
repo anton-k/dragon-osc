@@ -1,5 +1,7 @@
 package dragon.osc.ui
 
+import java.io.File
+
 import dragon.osc.send._
 import scala.swing.{Component}
 import scala.swing.audio.ui._
@@ -51,6 +53,9 @@ case class Listener(st: St, id: Option[String]) {
 
     def textList[A <: Component with SetTextList](widget: A): A = 
         withId(id, widget) { (ix, w) => st.osc.addTextListListener(ix, w) }
+
+    def file[A <: Component with SetWidget[File] with SetColor](widget: A): State[Context,A] = 
+        pure(withId(id, widget) { (ix, w) => st.osc.addFileListener(ix, w) })
 
     private def pure[A](a: A) = State.pure[Context,A](a)
 }

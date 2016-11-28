@@ -1,5 +1,7 @@
 package dragon.osc.send
 
+import java.io.File
+
 import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList, MultiToggle}
 import scala.audio.osc._
 import dragon.osc.readargs._
@@ -44,6 +46,19 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
 
     def addStringListener(id: String, widget: SetWidget[String])(implicit codec: MessageCodec[String]) {
         addListener(id, widget)(codec)
+    }
+
+    def addFileListener(id: String, widget: SetWidget[File])(implicit codec: MessageCodec[String]) {
+        def go(prefix: String, fireCallback: Boolean) {
+            server.listen[String](s"${prefix}/${id}")(msg => {
+                val file = new File(msg)
+                if (file.exists) {
+                    widget.set(file, fireCallback)
+                }
+            })            
+        }
+        go("", true)
+        go("/cold", false)
     }
 
     def addColorListener(id: String, widget: SetColor) {

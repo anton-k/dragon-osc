@@ -17,6 +17,7 @@ object Names {
     val xyPadRange = "xy-pad-range"
     val dropDownList = "drop-down-list"
     val textInput = "text-input"
+    val fileInput = "file-input"
     val texts = "texts"
     val allowDeselect = "deselect"
     val tabs = "tabs"

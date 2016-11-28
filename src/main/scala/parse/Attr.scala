@@ -1,5 +1,7 @@
 package dragon.osc.parse.attr
 
+import java.io.File
+
 import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.util._
@@ -75,6 +77,12 @@ object Attr {
     def initY = attr[(Float,Float)](Names.initY, readFloat2, Defaults.range)
     def initMultiToggle = attr[Set[(Int,Int)]](Names.init, readMultiToggleInit, Set())
     def multiToggleSize = attr[(Int,Int)](Names.size, readRangeInt, Defaults.multiToggleSize)
+
+    def initOptionFile = initOptionString.map(_.flatMap(filename => {
+        val file = new File(filename)
+        if (file.exists) Some(file)
+        else None
+    }))
 
     //---------------------------------------------------------
     // field readers

@@ -1,5 +1,7 @@
 package dragon.osc.parse.ui
 
+import java.io.File
+
 import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
@@ -50,6 +52,11 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Strin
 case class DropDownList(init: Int, texts: List[String])         extends Sym
 case class TextInput(init: Option[String], color: String, textLength: Int) extends Sym
 
+case class FileInput(init: Option[File], color: String, text: String) extends Sym
+
+case class Orient(isFirst: Boolean, isFirstHor: Boolean, isSecondHor: Boolean)
+case class DoubleCheck(init: (Int, Int), sizes: List[Int], texts: List[(String, List[String])], color1: String, color2: String, orient: Orient, allowDeselect: Boolean) extends Sym
+
 // -----------------------------------------
 
 object Read {    
@@ -80,6 +87,8 @@ object Read {
     def dropDownList = Widget.prim(Names.dropDownList, lift2(DropDownList, initInt, texts))
     def textInput = Widget.prim(Names.textInput, lift3(TextInput, initOptionString, color, textLength))
 
+    def fileInput = Widget.prim(Names.fileInput, lift3(FileInput, initOptionFile, color, text))
+
     def hor = list(Names.hor, Hor)
     def ver = list(Names.ver, Ver)
 
@@ -104,6 +113,7 @@ object Read {
         dropDownList #::
         textInput #::
         multiToggle #::
+        fileInput #::
         hor #:: 
         ver #:: 
         tabs #:: 

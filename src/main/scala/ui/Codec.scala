@@ -1,5 +1,7 @@
 package dragon.osc.ui
 
+import java.io.File
+
 import scala.audio.osc._
 import dragon.osc.parse.send._
 import dragon.osc.send._
@@ -19,6 +21,12 @@ object Codec {
     val multiToggleOsc = MessageCodec.tuple2(oscInt2, MessageCodec.booleanOscMessageCodec)
     val multiToggleArg = ToPlainList.tupleArg2(argInt2, ToPlainList.booleanArg)
 
+    implicit val fileMessageCodec = new MessageCodec[File] {
+        def toMessage(msg: File) = ToPlainList.fileArg.toPlainList(msg)
+        def fromMessage(msg: List[Object]) = (new File(msg.head.asInstanceOf[java.lang.String]), msg.tail)
+    }
+
+
     def onFloat(st: St, optSend: Option[Send])   = onArg[Float](st, optSend)(MessageCodec.floatOscMessageCodec, ToPlainList.floatArg)    
     def onInt(st: St, optSend: Option[Send])     = onArg[Int](st, optSend)(MessageCodec.intOscMessageCodec, ToPlainList.intArg)
     def onBoolean(st: St, optSend: Option[Send]) = onArg[Boolean](st, optSend)(MessageCodec.booleanOscMessageCodec, ToPlainList.booleanArg)
@@ -26,6 +34,7 @@ object Codec {
     def onFloat2(st: St, optSend: Option[Send])  = unPair(onArg[(Float,Float)](st, optSend)(oscFloat2, argFloat2))
     def onFloat4(st: St, optSend: Option[Send])  = unPair(onArg[((Float,Float), (Float,Float))](st, optSend)(oscFloat4, argFloat4))
     def onMultiToggle(st: St, optSend: Option[Send]) = unPair(onArg[((Int,Int), Boolean)](st, optSend)(multiToggleOsc, multiToggleArg))
+    def onFile(st: St, optSend: Option[Send]) = onArg[File](st, optSend)(fileMessageCodec, ToPlainList.fileArg)
 
     def onArg[A](st: St, optSend: Option[Send])(oscCodec: MessageCodec[A], caseCodec: ToPlainList[A]): (A => Unit) = {
         val specSend = optSend.map(st.compileSend)
@@ -58,9 +67,11 @@ object ToPlainList {
     implicit val intArg = new ToPlainList[Int] { def toPlainList(a: Int) = List(a.asInstanceOf[Object]) }
     implicit val booleanArg = new ToPlainList[Boolean] { def toPlainList(a: Boolean) = List(a.asInstanceOf[Object]) }
     implicit val stringArg = new ToPlainList[String] { def toPlainList(a: String) = List(a.asInstanceOf[Object]) }
+    implicit val fileArg = new ToPlainList[File] { def toPlainList(a: File) = List(a.getAbsolutePath.asInstanceOf[Object]) }
     implicit def tupleArg2[A,B](argA: ToPlainList[A], argB: ToPlainList[B]) = new ToPlainList[(A,B)] { def toPlainList(a: (A,B)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) }
     implicit def tupleArg3[A,B,C](argA: ToPlainList[A], argB: ToPlainList[B], argC: ToPlainList[C]) = new ToPlainList[(A,B,C)] { def toPlainList(a: (A,B,C)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) ++ argC.toPlainList(a._3) }
     implicit def tupleArg4[A,B,C,D](argA: ToPlainList[A], argB: ToPlainList[B], argC: ToPlainList[C], argD: ToPlainList[D]) = new ToPlainList[(A,B,C,D)] { def toPlainList(a: (A,B,C,D)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) ++ argC.toPlainList(a._3) ++ argD.toPlainList(a._4) }
+
 
     def toStringArg[A](a: A)(implicit codec: ToPlainList[A]) =
         codec.toPlainList(a).map(_.toString).mkString(" ")        
