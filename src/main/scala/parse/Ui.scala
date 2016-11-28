@@ -55,7 +55,7 @@ case class TextInput(init: Option[String], color: String, textLength: Int) exten
 case class FileInput(init: Option[File], color: String, text: String) extends Sym
 
 case class Orient(isFirst: Boolean, isFirstHor: Boolean, isSecondHor: Boolean)
-case class DoubleCheck(init: (Int, Int), sizes: List[Int], texts: List[(String, List[String])], color1: String, color2: String, orient: Orient, allowDeselect: Boolean) extends Sym
+case class DoubleCheck(init: (Int, Int), sizes: List[Int], color1: String, color2: String, texts: List[(String, List[String])], orient: Orient, allowDeselect: Boolean) extends Sym
 
 // -----------------------------------------
 
@@ -89,6 +89,8 @@ object Read {
 
     def fileInput = Widget.prim(Names.fileInput, lift3(FileInput, initOptionFile, color, text))
 
+    def doubleCheck = Widget.prim(Names.doubleCheck, lift7(DoubleCheck, initInt2, sizeList, color1, color2, doubleCheckTexts, orient, allowDeselect))
+
     def hor = list(Names.hor, Hor)
     def ver = list(Names.ver, Ver)
 
@@ -114,6 +116,7 @@ object Read {
         textInput #::
         multiToggle #::
         fileInput #::
+        doubleCheck #::
         hor #:: 
         ver #:: 
         tabs #:: 

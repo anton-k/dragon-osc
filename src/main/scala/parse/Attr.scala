@@ -5,6 +5,7 @@ import java.io.File
 import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.util._
+import dragon.osc.parse.ui._
 
 trait Attr[A] { self =>
     def run(obj: Lang): A
@@ -41,6 +42,14 @@ object Attr {
         ap(lift4[A,B,C,D,E=>F]((a, b, c, d) => (e: E) => f(a,b,c,d, e), ma, mb, mc, md), me)
     }
 
+    def lift6[A,B,C,D,E,F,G](phi: (A,B,C,D,E,F) => G, ma: Attr[A], mb: Attr[B], mc: Attr[C], md: Attr[D], me: Attr[E], mf: Attr[F]) = {
+        ap(lift5[A,B,C,D,E,F=>G]((a, b, c, d, e) => (f: F) => phi(a,b,c,d,e,f), ma, mb, mc, md, me), mf)
+    }
+
+    def lift7[A,B,C,D,E,F,G,H](phi: (A,B,C,D,E,F,G) => H, ma: Attr[A], mb: Attr[B], mc: Attr[C], md: Attr[D], me: Attr[E], mf: Attr[F], mg: Attr[G]) = {
+        ap(lift6[A,B,C,D,E,F,G=>H]((a, b, c, d, e, f) => (g: G) => phi(a,b,c,d,e,f, g), ma, mb, mc, md, me, mf), mg)
+    }
+
     def attr[A](name: String, extract: Lang => Option[A], default: A) = new Attr[A] {
         def run(obj: Lang) = (obj match {
             case MapSym(m) => m.get(name).flatMap(extract)
@@ -57,9 +66,13 @@ object Attr {
     def initFloat2  = attr[(Float, Float)](Names.init, readFloat2, Defaults.float2)
     def initBoolean = attr[Boolean](Names.init, readBoolean, Defaults.boolean)
     def initInt = attr[Int](Names.init, readInt, Defaults.int)
+    def initInt2 = attr[(Int,Int)](Names.init, readInt2, Defaults.int2)
     def initString = attr[String](Names.init, readString, Defaults.string)
 
-    def color = attr[String](Names.color, readString, Defaults.color)
+    def colorBy(name: String) = attr[String](name, readString, Defaults.color)
+    def color = colorBy(Names.color)
+    def color1 = colorBy(Names.color1)
+    def color2 = colorBy(Names.color2)
     def text = attr[String](Names.text, readString, Defaults.string)
     def rangeInt = attr[(Int, Int)](Names.range, readRangeInt, Defaults.rangeInt)
     def id = attr[Option[String]](Names.id, x => Some(readString(x)), None)
@@ -77,6 +90,9 @@ object Attr {
     def initY = attr[(Float,Float)](Names.initY, readFloat2, Defaults.range)
     def initMultiToggle = attr[Set[(Int,Int)]](Names.init, readMultiToggleInit, Set())
     def multiToggleSize = attr[(Int,Int)](Names.size, readRangeInt, Defaults.multiToggleSize)
+    def orient = attr[Orient](Names.orient, readOrient, Orient(Defaults.orientIsFirst, Defaults.orientIsFirstHor, Defaults.orientIsSecondHor))
+    def sizeList = attr[List[Int]](Names.sizeList, readIntList, Defaults.sizeList)
+    def doubleCheckTexts = attr[List[(String, List[String])]](Names.texts, readDoubleCheckTexts, Defaults.doubleCheckTexts)
 
     def initOptionFile = initOptionString.map(_.flatMap(filename => {
         val file = new File(filename)
@@ -117,10 +133,20 @@ object Attr {
         case _ => None
     }
 
+    def readIntList(obj: Lang) = obj match {
+        case ListSym(xs) => Util.optionMapM(xs)(readInt)
+        case _ => None
+    }    
+
     def readFloat2(obj: Lang) = obj match {
         case ListSym(List(PrimSym(PrimFloat(x)), PrimSym(PrimFloat(y)))) => Some((x, y))
         case _ => None
     }
+
+    def readInt2(obj: Lang) = obj match {
+        case ListSym(List(PrimSym(PrimInt(x)), PrimSym(PrimInt(y)))) => Some((x, y))
+        case _ => None
+    }    
 
     def readOptionString(obj: Lang) = obj match {
         case PrimSym(PrimString(x)) => if (x.isEmpty) None else Some(Some(x))
@@ -133,4 +159,19 @@ object Attr {
     }
 
     def readSize(obj: Lang) = readRangeInt(obj).map(x => Some(x))
+
+    def readOrient(obj: Lang) = obj match {
+        case ListSym(List(PrimSym(PrimBoolean(isFirst)), PrimSym(PrimBoolean(isFirstHor)), PrimSym(PrimBoolean(isSecondHor))))  => Some(Orient(isFirst, isFirstHor, isSecondHor))
+        case _ => None
+    }
+
+    def readDoubleCheckTexts(obj: Lang) = obj match {
+        case ListSym(xs) => Util.optionMapM(xs)(readDoubleCheckItem)
+        case _ => None
+    }
+
+    def readDoubleCheckItem(obj: Lang) = obj match {
+        case ListSym(List(PrimSym(PrimString(name)), subnames)) => readStringList(subnames).map(xs => (name, xs))
+        case _ => None
+    }
 } 

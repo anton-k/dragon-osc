@@ -46,6 +46,8 @@ object Names {
     val run  = "run"
 
     val color = "color"
+    val color1 = "color1"
+    val color2 = "color2"
     val init  = "init"
     val initX = "init-x"
     val initY = "init-y"
@@ -65,6 +67,9 @@ object Names {
     val key = "key"
     val unlockPass = "exit"
     val textLength = "text-length"
+    val orient = "orient"
+    val sizeList = "sizes"
+    val doubleCheck = "doubleCheck"
 
     object Error {
         val failedToParse = "File parsing failed. Check if the file exists and if it is in yaml format."
@@ -77,6 +82,7 @@ object Defaults {
     val boolean = false
     val string = ""
     val float2 = (float, float)
+    val int2 = (int, int)
     val range = (0f, 1f)
     val color = "blue"
     val rangeInt = (0, 100)
@@ -87,4 +93,9 @@ object Defaults {
     val textLength = 7    
     val multiToggleSize = (2, 4)
     val textColor = "black"
+    val orientIsFirst = true
+    val orientIsFirstHor = true
+    val orientIsSecondHor = true
+    val sizeList = List(4, 4, 4, 4)
+    val doubleCheckTexts = Nil
 }

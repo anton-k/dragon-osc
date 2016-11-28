@@ -57,5 +57,7 @@ case class Listener(st: St, id: Option[String]) {
     def file[A <: Component with SetWidget[File] with SetColor](widget: A): State[Context,A] = 
         pure(withId(id, widget) { (ix, w) => st.osc.addFileListener(ix, w) })
 
+    def doubleCheck(widget: DoubleCheck): State[Context,DoubleCheck] = ???
+
     private def pure[A](a: A) = State.pure[Context,A](a)
 }

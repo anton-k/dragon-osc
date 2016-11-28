@@ -35,6 +35,7 @@ object Codec {
     def onFloat4(st: St, optSend: Option[Send])  = unPair(onArg[((Float,Float), (Float,Float))](st, optSend)(oscFloat4, argFloat4))
     def onMultiToggle(st: St, optSend: Option[Send]) = unPair(onArg[((Int,Int), Boolean)](st, optSend)(multiToggleOsc, multiToggleArg))
     def onFile(st: St, optSend: Option[Send]) = onArg[File](st, optSend)(fileMessageCodec, ToPlainList.fileArg)
+    def onInt2(st: St, optSend: Option[Send]) = unPair(onArg[(Int,Int)](st, optSend)(oscInt2, argInt2))
 
     def onArg[A](st: St, optSend: Option[Send])(oscCodec: MessageCodec[A], caseCodec: ToPlainList[A]): (A => Unit) = {
         val specSend = optSend.map(st.compileSend)
@@ -71,7 +72,6 @@ object ToPlainList {
     implicit def tupleArg2[A,B](argA: ToPlainList[A], argB: ToPlainList[B]) = new ToPlainList[(A,B)] { def toPlainList(a: (A,B)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) }
     implicit def tupleArg3[A,B,C](argA: ToPlainList[A], argB: ToPlainList[B], argC: ToPlainList[C]) = new ToPlainList[(A,B,C)] { def toPlainList(a: (A,B,C)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) ++ argC.toPlainList(a._3) }
     implicit def tupleArg4[A,B,C,D](argA: ToPlainList[A], argB: ToPlainList[B], argC: ToPlainList[C], argD: ToPlainList[D]) = new ToPlainList[(A,B,C,D)] { def toPlainList(a: (A,B,C,D)) = argA.toPlainList(a._1) ++ argB.toPlainList(a._2) ++ argC.toPlainList(a._3) ++ argD.toPlainList(a._4) }
-
 
     def toStringArg[A](a: A)(implicit codec: ToPlainList[A]) =
         codec.toPlainList(a).map(_.toString).mkString(" ")        

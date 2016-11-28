@@ -138,6 +138,8 @@ object Convert {
             case P.DropDownList(init, texts)        => listen.int(DropDownList(init, texts)(onInt(st, send)))            
             case P.TextInput(init, color, textLength) => listen.string(TextInput(init, palette(color), textLength)(onString(st, send)))
             case P.FileInput(init, color, text) => listen.file(FileInput(init, palette(color), text)(onFile(st, send)))
+            case P.DoubleCheck(init, sizes, color1, color2, texts, orient, allowDeselect) => listen.doubleCheck(DoubleCheck(init, sizes, palette(color1), palette(color2), texts, 
+                        DoubleCheck.Orient(orient.isFirst, orient.isFirstHor, orient.isSecondHor), allowDeselect)(onInt2(st, send)))
         }
     }       
 }
