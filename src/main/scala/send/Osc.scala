@@ -2,7 +2,7 @@ package dragon.osc.send
 
 import java.io.File
 
-import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList, MultiToggle}
+import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextList, MultiToggle, DoubleCheck}
 import scala.audio.osc._
 import dragon.osc.readargs._
 import dragon.osc.color._
@@ -135,13 +135,46 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
          def go(prefix: String, isFireCallback: Boolean) {
             server.listen[(Int,Int)](s"${prefix}/${id}/multi-toggle"){ msg => 
                 val current = widget.getAt(msg)
-                widget.set((msg, !current), isFireCallback)
-                println("got it")
+                widget.set((msg, !current), isFireCallback)                
             }
         }
 
         go("", true)
         go("/cold", false)       
+    }
+
+    def addDoubleCheckListener(id: String, widget: DoubleCheck)(implicit codec: MessageCodec[Int]) {
+        def go1 {
+            server.listen[Int](s"/${id}/double-check/1") { msg =>
+                widget.onFirstSelect(msg)
+            }
+        }
+
+        def go2(prefix: String, isFireCallback: Boolean) {
+            server.listen[Int](s"${prefix}/${id}/double-check/2") { msg =>
+                widget.onSecondSelect(msg, isFireCallback)
+            }
+        }
+
+        def setText1 {
+            server.listen[(Int,String)](s"/${id}/double-check/set-text/1") { msg =>
+                val (pos, name) = msg
+                widget.setTextAt1(pos, name)
+            }
+        }
+
+        def setText2 {
+            server.listen[(Int,Int,String)](s"/${id}/double-check/set-text/2") { msg =>
+                val (pos1, pos2, name) = msg
+                widget.setTextAt2(pos1, pos2, name)
+            }
+        }
+
+        go1
+        go2("", true)
+        go2("/cold", false)
+        setText1
+        setText2
     }
 
 }
