@@ -1,0 +1,292 @@
+main:
+    - window:    
+          title: raga
+          size: [450, 300]
+          content:  
+            id: tabs                    
+            tabs:
+                - page:
+                    title: mix
+                    content: 
+                        hor:
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix1
+                                - toggle: { color: blue }
+                                - toggle: { color: navy }
+                                - label: { text: flow }
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix2
+                                - toggle: { color: blue }                                
+                                - toggle: { color: navy }
+                                - label: { text: "sam low" }
+
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix3
+                                - toggle: { color: blue }                                
+                                - toggle: { color: navy }
+                                - label: { text: "sam hi" }
+
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix4
+                                - toggle: { color: blue }
+                                - toggle: { color: navy }
+                                - label: { text: "tap" }
+
+
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix5
+                                - toggle: { color: blue }
+                                - toggle: { color: navy }     
+                                - label: { text: "synt" }
+
+
+                            - ver:
+                                - vfader: { color: olive }
+                                  id: mix6
+                                - toggle: { color: blue }
+                                - toggle: { color: navy }
+                                - label: { text: "loop" }
+
+                            - ver:
+                                - vfader: { color: navy }
+                                  id: mix7
+                                - toggle: { color: blue }
+                                - toggle: { color: navy }
+                                - label: { text: "master" } 
+                    keys:
+                        - key: "1"
+                          send: [ msg: { path: "/mix1/add-float", args: 0.1 } ]
+                        - key: "q"
+                          send: [ msg: { path: "/mix1/add-float", args: -0.1 } ]
+                        - key: "2"
+                          send: [ msg: { path: "/mix2/add-float", args: 0.1 } ]
+                        - key: "w"
+                          send: [ msg: { path: "/mix2/add-float", args: -0.1 } ]
+                        - key: "3"
+                          send: [ msg: { path: "/mix3/add-float", args: 0.1 } ]
+                        - key: "e"
+                          send: [ msg: { path: "/mix3/add-float", args: -0.1 } ]
+                        - key: "4"
+                          send: [ msg: { path: "/mix4/add-float", args: 0.1 } ]
+                        - key: "r"
+                          send: [ msg: { path: "/mix4/add-float", args: -0.1 } ]                          
+                        - key: "5"
+                          send: [ msg: { path: "/mix5/add-float", args: 0.1 } ]
+                        - key: "t"
+                          send: [ msg: { path: "/mix5/add-float", args: -0.1 } ]
+                        - key: "6"
+                          send: [ msg: { path: "/mix6/add-float", args: 0.1 } ]
+                        - key: "y"
+                          send: [ msg: { path: "/mix6/add-float", args: -0.1 } ]
+                        - key: "7"
+                          send: [ msg: { path: "/mix7/add-float", args: 0.1 } ]
+                        - key: "u"
+                          send: [ msg: { path: "/mix7/add-float", args: -0.1 } ]
+
+                - page: 
+                    title: sam
+                    content: 
+                        ver:
+                            - multi-toggle:
+                                size: [4, 3]
+                                color: olive
+
+                - page:
+                    title: sam-vols
+                    content: 
+                        ver:
+                            - hor:
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                            - hor:
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                            - hor:
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive
+                                - dial:
+                                    init: 0.5
+                                    color: olive                                 
+
+                - page: 
+                    title: synt
+                    content: 
+                        double-check:
+                            color1: olive
+                            color2: blue
+                            sizes: [4, 4, 4, 4]
+                            orient: [true, true, true]
+                            texts: [[pad1, []], [pad2, []], [lead, []], [fx, []]]
+
+                - page:
+                    title: loop
+                    content: 
+                        multi-toggle:
+                            color: olive
+                            size: [4, 4]   
+
+                - page:
+                    title: flow
+                    content:
+                        ver:
+                            - hor:
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                            - hor:
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}
+                                - ver:
+                                    - dial: {}
+                                    - toggle: {}  
+
+
+                - page:
+                    title: tap
+                    content: 
+                        hor:                            
+                            - button:
+                                text: tap
+                                color: orange
+                               
+
+                - page: 
+                    title: other
+                    content: 
+                        double-check:
+                            color1: olive
+                            color2: blue
+                            sizes: [4, 4, 4, 4]
+                            orient: [true, true, true]
+                            texts: [[pad1, []], [pad2, []], [lead, []], [fx, []]]                            
+
+                - page: 
+                    title: gens
+                    content: 
+                        hor:
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+
+                            - ver:
+                                - dial: {}
+                                - dial: {}
+                                - toggle: {}
+                                - toggle: {}
+
+                - page: 
+                    title: tracks
+                    content:
+                        double-check:
+                            sizes: [8, 8]        
+                            orient: [true, true, false]                    
+                            texts: [[part1, ["intro birds", bhopali, cosmonauts, hams, sakura, fidel, charukeshi]], [part2, ["no mosquitos", "concerto", "bageshri"]]]
+
+keys:
+
+  - key: "9"
+    send:
+      - msg: { path: /tabs, args: 0 }
+
+  - key: "0"
+    send:
+      - msg: { path: /tabs, args: 1 }
+
+  - key: "-"
+    send:
+      - msg: { path: /tabs, args: 3 }
+
+
+  - key: "="
+    send:
+      - msg: { path: /tabs, args: 4 }
+
+  - key: "o"
+    send:
+      - msg: { path: /tabs, args: 5 }
+
+  - key: "p"
+    send:
+      - msg: { path: /tabs, args: 6 }
+
+  - key: "["
+    send:
+      - msg: { path: /tabs, args: 7 }
+                                
+
+  - key: "]"
+    send:
+      - msg: { path: /tabs, args: 8 }
