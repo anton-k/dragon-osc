@@ -129,6 +129,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
+        addListener(id, widget)
     }  
 
     def addMultiToggleListener(id: String, widget: MultiToggle)(implicit codec: MessageCodec[(Int, Int)]) {

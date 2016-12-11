@@ -15,7 +15,7 @@ object Listener {
     }
 
     def withListener[B, A <: Component with SetWidget[B] with SetColor](st: St)(optId: Option[String], widget: A)(implicit codec: MessageCodec[B]): A = {
-        optId.foreach(id => st.addListener(id, widget)(codec))
+        optId.foreach(id => st.osc.addListener(id, widget)(codec))
         widget
     }
 }
