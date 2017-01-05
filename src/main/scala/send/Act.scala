@@ -27,6 +27,9 @@ private object Util {
     def msgList(input: List[Object], send: Send): List[Msg] = 
         send.onValue.get(getStringRepr(input)).getOrElse(send.default)
 
+    def msgOffList(input: List[Object], send: Send): List[Msg] = 
+        send.onValueOff.get(getStringRepr(input)).getOrElse(Nil)
+
     def getStringRepr(input: List[Object]) = 
         input.map(_.toString).mkString(" ")
 }
@@ -38,6 +41,16 @@ case class St(osc: Osc, memory: Memory) {
 
     def compileSend(send: Send)(oscInput: List[Object], caseArgInput: List[Object]) {
         Util.msgList(caseArgInput, send).foreach(msg => Util.convertMsg(this)(oscInput, msg).foreach(x => osc.send(x)))
+    }
+
+    def compileSendWithDeselect(send: Send) = {
+        def select(oscInput: List[Object], caseArgInput: List[Object]) = compileSend(send)(oscInput, caseArgInput)
+
+        def deselect(oscInput: List[Object], caseArgInput: List[Object]) {
+            Util.msgOffList(caseArgInput, send).foreach(msg => Util.convertMsg(this)(oscInput, msg).foreach(x => osc.send(x)))
+        }
+
+        (select _, deselect _)
     }
 
     def compileSendNoInput(send: Send): List[OscMsg] = 

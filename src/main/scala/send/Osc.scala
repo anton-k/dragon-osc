@@ -73,7 +73,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         server.listen[(Int,String)](s"/${id}/set-text-list")({ case (pos, name) => widget.setTextAt(pos, name) })
     }
 
-    def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A) {
+    def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A)(implicit codec: MessageCodec[Boolean]) {
         def go(prefix: String, isFireCallback: Boolean) {
             server.listen[Unit](s"${prefix}/${id}/toggle"){ msg => 
                 val current = widget.get
@@ -83,6 +83,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
 
         go("", true)
         go("/cold", false)
+        addListener(id, widget)(codec)
     }   
 
     def addFloatListener[A <: SetWidget[Float] with GetWidget[Float]](id: String, widget: A)(implicit codec: MessageCodec[Float]) {

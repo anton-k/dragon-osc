@@ -60,6 +60,7 @@ object Names {
     val id = "id"
     val default = "default"   
     val msgCase = "case"
+    val msgCaseOff = "case-off"
     val title = "title"
     val size = "size"
     val keys = "keys"    

@@ -7,7 +7,7 @@ import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
 import dragon.osc.parse.util._
 
-case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map())
+case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map(), onValueOff: Map[String, List[Msg]] = Map())
 case class Msg(client: String, address: String, args: List[Arg])
 
 trait Arg
@@ -53,12 +53,15 @@ object Send {
         case _ => None
     }
 
-    def readMap(m: Map[String,Lang]) = Send(readDefault(m), readOnValue(m))
+    def readMap(m: Map[String,Lang]) = Send(readDefault(m), readOnValue(m), readOnValueOff(m))
 
     def readDefault(m: Map[String,Lang]) = m.get(Names.default).flatMap(readMsgList).getOrElse(Nil)
 
-    def readOnValue(m: Map[String,Lang]) = m.toList.filter(keyValue => keyValue._1.startsWith(Names.msgCase + " "))
-        .map(keyValue => (keyValue._1.drop(Names.msgCase.length + 1), readMsgList(keyValue._2)))
+    def readOnValue(m: Map[String,Lang])    = readOnValueBy(Names.msgCase, m)
+    def readOnValueOff(m: Map[String,Lang]) = readOnValueBy(Names.msgCaseOff, m)
+
+    def readOnValueBy(caseName: String, m: Map[String,Lang]) = m.toList.filter(keyValue => keyValue._1.startsWith(caseName + " "))
+        .map(keyValue => (keyValue._1.drop(caseName.length + 1), readMsgList(keyValue._2)))
         .filter(keyValue => ! keyValue._2.isEmpty)
         .map(keyValue => (keyValue._1, keyValue._2.get))
         .toMap
@@ -90,7 +93,7 @@ object Send {
             case MapSym(m) => {
                 val adds = List(getElem(m, Names.client), getElem(m, Names.path)).flatten
                 msgs match {
-                    case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Names.msgCase) || key.startsWith(Names.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
+                    case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Names.msgCase) || key.startsWith(Names.msgCaseOff) || key.startsWith(Names.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
                     case _ => msgs
                 }                
             }                        

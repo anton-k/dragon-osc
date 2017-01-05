@@ -41,7 +41,9 @@ object Keyboard {
         case ":" => Colon
         case "'" => Quote
         case "<" => Less
-        case ">" => Greater     
+        case ">" => Greater    
+        case "[" => OpenBracket
+        case "]" => CloseBracket
 
         case "enter" => Enter
     }}.toOption

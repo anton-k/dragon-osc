@@ -55,6 +55,24 @@ object Codec {
         
         cbk
     }
+
+    def onIntWithDeselect(init: Int, st: St, optSend: Option[Send]) = onArgWithDeselect(init, st, optSend)(MessageCodec.intOscMessageCodec, ToPlainList.intArg)
+    def onInt2WithDeselect(init: (Int, Int), st: St, optSend: Option[Send]) = unPair(onArgWithDeselect[(Int,Int)](init, st, optSend)(oscInt2, argInt2))
+
+    def onArgWithDeselect[A](init: A, st: St, optSend: Option[Send])(oscCodec: MessageCodec[A], caseCodec: ToPlainList[A]): (A => Unit) = {
+        var initState = init
+        val specSend = optSend.map(st.compileSendWithDeselect)
+
+        def cbk(input: A) {
+            specSend.foreach( p => {                                       
+                    p._2(oscCodec.toMessage(initState), caseCodec.toPlainList(initState))
+                    initState = input
+                    p._1(oscCodec.toMessage(input), caseCodec.toPlainList(input))
+                }                
+            )            
+        }
+        cbk
+    }    
 }
 
 

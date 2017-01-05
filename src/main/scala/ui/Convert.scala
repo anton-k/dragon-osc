@@ -125,8 +125,8 @@ object Convert {
             case P.Button(color, text)              => listen.pure[Unit,PushButton](PushButton(palette(color), Some(text))(onButton(st, send))).map(listen.text)
             case P.Label(color, text)               => pure(Text(text, palette(color))).map(listen.text)
             case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))                     
-            case P.HCheck(init, len, color, texts, allowDeselect)  => listen.int(HCheck(init, len, palette(color), texts, allowDeselect)(onInt(st, send))).map(listen.textList)
-            case P.VCheck(init, len, color, texts, allowDeselect)  => listen.int(VCheck(init, len, palette(color), texts, allowDeselect)(onInt(st, send))).map(listen.textList)
+            case P.HCheck(init, len, color, texts, allowDeselect)  => listen.int(HCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
+            case P.VCheck(init, len, color, texts, allowDeselect)  => listen.int(VCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
 
             case P.MultiToggle(init, (sizeX, sizeY), color, texts) => listen.multiToggle(MultiToggle(init, sizeX, sizeY, palette(color), palette(Defaults.textColor), texts)(onMultiToggle(st, send))).map(listen.textList)
 
@@ -139,7 +139,7 @@ object Convert {
             case P.TextInput(init, color, textLength) => listen.string(TextInput(init, palette(color), textLength)(onString(st, send)))
             case P.FileInput(init, color, text) => listen.file(FileInput(init, palette(color), text)(onFile(st, send)))
             case P.DoubleCheck(init, sizes, color1, color2, texts, orient, allowDeselect) => listen.doubleCheck(DoubleCheck(init, sizes, palette(color1), palette(color2), texts, 
-                        DoubleCheck.Orient(orient.isFirst, orient.isFirstHor, orient.isSecondHor), allowDeselect)(onInt2(st, send)))
+                        DoubleCheck.Orient(orient.isFirst, orient.isFirstHor, orient.isSecondHor), allowDeselect)(onInt2WithDeselect(init, st, send)))
         }
     }       
 }
