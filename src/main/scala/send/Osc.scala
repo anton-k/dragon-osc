@@ -133,7 +133,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         addListener(id, widget)
     }  
 
-    def addMultiToggleListener(id: String, widget: MultiToggle)(implicit codec: MessageCodec[(Int, Int)]) {
+    def addMultiToggleListener(id: String, widget: MultiToggle)(implicit codec: MessageCodec[(Int, Int)], codec2: MessageCodec[((Int, Int), Boolean)]) {
          def go(prefix: String, isFireCallback: Boolean) {
             server.listen[(Int,Int)](s"${prefix}/${id}/multi-toggle"){ msg => 
                 val current = widget.getAt(msg)
@@ -142,7 +142,8 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
 
         go("", true)
-        go("/cold", false)       
+        go("/cold", false) 
+        addListener[((Int, Int), Boolean)](id, widget)
     }
 
     def addDoubleCheckListener(id: String, widget: DoubleCheck)(implicit codec: MessageCodec[Int]) {

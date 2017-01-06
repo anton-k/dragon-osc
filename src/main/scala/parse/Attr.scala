@@ -75,6 +75,7 @@ object Attr {
     def color2 = colorBy(Names.color2)
     def text = attr[String](Names.text, readString, Defaults.string)
     def rangeInt = attr[(Int, Int)](Names.range, readRangeInt, Defaults.rangeInt)
+    def rangeFloat = attr[(Float, Float)](Names.range, readRangeFloat, Defaults.range)
     def id = attr[Option[String]](Names.id, x => Some(readString(x)), None)
     def client = attr[String](Names.client, readString, Defaults.client)
     def path = attr[String](Names.path, readString, Defaults.path)
@@ -105,6 +106,7 @@ object Attr {
 
     def readFloat(obj: Lang) = obj match {
         case PrimSym(PrimFloat(x)) => Some(x)
+        case PrimSym(PrimInt(x)) => Some(x.toFloat)
         case _ => None
     }
 
@@ -127,6 +129,11 @@ object Attr {
         case ListSym(List(PrimSym(PrimInt(min)), PrimSym(PrimInt(max)))) => Some((min, max))
         case _ => None
     }
+    
+    def readRangeFloat(obj: Lang) = obj match {
+        case ListSym(List(s1, s2)) => for { min <- readFloat(s1); max <- readFloat(s2) } yield (min, max)
+        case _ => None
+    }
 
     def readStringList(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readString)
@@ -139,7 +146,7 @@ object Attr {
     }    
 
     def readFloat2(obj: Lang) = obj match {
-        case ListSym(List(PrimSym(PrimFloat(x)), PrimSym(PrimFloat(y)))) => Some((x, y))
+        case ListSym(List(s1, s2)) => for { x <- readFloat(s1); y <- readFloat(s2) } yield (x, y)
         case _ => None
     }
 

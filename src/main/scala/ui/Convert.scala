@@ -118,9 +118,9 @@ object Convert {
             case P.Tabs(xs)     => mkTabs(st, send, keys, xs).flatMap(listen.int)
             case P.Space                            => withOrient(Swing.HStrut(10), Swing.VStrut(10))
 
-            case P.Dial(init, color)                => listen.float(Dial(init, palette(color))(onFloat(st, send)))
-            case P.HFader(init, color)              => listen.float(HFader(init, palette(color))(onFloat(st, send)))
-            case P.VFader(init, color)              => listen.float(VFader(init, palette(color))(onFloat(st, send)))
+            case P.Dial(init, color, range)         => listen.float(Dial(init, palette(color), range)(onFloat(st, send)))
+            case P.HFader(init, color, range)       => listen.float(HFader(init, palette(color), range)(onFloat(st, send)))
+            case P.VFader(init, color, range)       => listen.float(VFader(init, palette(color), range)(onFloat(st, send)))
             case P.Toggle(init, color, text)        => listen.toggle(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send))).map(listen.text)
             case P.Button(color, text)              => listen.pure[Unit,PushButton](PushButton(palette(color), Some(text))(onButton(st, send))).map(listen.text)
             case P.Label(color, text)               => pure(Text(text, palette(color))).map(listen.text)

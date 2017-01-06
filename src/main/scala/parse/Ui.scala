@@ -30,9 +30,9 @@ object Glue                                                     extends Sym
 // ----------------------------------------
 // primitive widgets
 
-case class Dial(init: Float, color: String)                     extends Sym
-case class HFader(init: Float, color: String)                   extends Sym
-case class VFader(init: Float, color: String)                   extends Sym
+case class Dial(init: Float, color: String, range: (Float, Float))      extends Sym
+case class HFader(init: Float, color: String, range: (Float, Float))    extends Sym
+case class VFader(init: Float, color: String, range: (Float, Float))    extends Sym
 case class Toggle(init: Boolean, color: String, text: String)   extends Sym
 case class IntDial(init: Int, color: String, range: (Int, Int)) extends Sym
 case class Button(color: String, text: String)                  extends Sym
@@ -66,10 +66,10 @@ object Read {
 
     def fromSym(sym: Widget[Sym]): Widget[Ui] = 
         Widget.lift2(Ui, sym, param)
-   
-    def dial    = Widget.prim(Names.dial,    lift2(Dial,   initFloat, color))
-    def hfader  = Widget.prim(Names.hfader,  lift2(HFader, initFloat, color))
-    def vfader  = Widget.prim(Names.vfader,  lift2(VFader, initFloat, color))
+
+    def dial    = Widget.prim(Names.dial,    lift3(Dial,   initFloat, color, rangeFloat))
+    def hfader  = Widget.prim(Names.hfader,  lift3(HFader, initFloat, color, rangeFloat))
+    def vfader  = Widget.prim(Names.vfader,  lift3(VFader, initFloat, color, rangeFloat))
     def toggle  = Widget.prim(Names.toggle,  lift3(Toggle, initBoolean, color, text))
     def intDial = Widget.prim(Names.intDial, lift3(IntDial, initInt, color, rangeInt))
     def label   = Widget.prim(Names.label,   lift2(Label,  color, text))
