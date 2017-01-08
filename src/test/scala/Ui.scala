@@ -14,18 +14,18 @@ class PrimWidgets extends FunSuite {
         assert(Lang.read(str).flatMap(x => w.run(x)) == res)
 
     test("dial") {
-        check("dial: { color: red, init: 0.2 }", dial, Some(Dial(0.2f, "red")))
-        check("dial: { }", dial, Some(Dial(Defaults.float, Defaults.color)))
+        check("dial: { color: red, init: 0.2 }", dial, Some(Dial(0.2f, "red", Defaults.range)))
+        check("dial: { }", dial, Some(Dial(Defaults.float, Defaults.color, Defaults.range)))
     }
 
     test("hfader") {
-        check("hfader: { color: red, init: 0.2 }", hfader, Some(HFader(0.2f, "red")))
-        check("hfader: { }", hfader, Some(HFader(Defaults.float, Defaults.color)))
+        check("hfader: { color: red, init: 0.2 }", hfader, Some(HFader(0.2f, "red", Defaults.range)))
+        check("hfader: { }", hfader, Some(HFader(Defaults.float, Defaults.color, Defaults.range)))
     }
 
     test("vfader") {
-        check("vfader: { color: red, init: 0.2 }", vfader, Some(VFader(0.2f, "red")))
-        check("vfader: {}", vfader, Some(VFader(Defaults.float, Defaults.color)))
+        check("vfader: { color: red, init: 0.2 }", vfader, Some(VFader(0.2f, "red", Defaults.range)))
+        check("vfader: {}", vfader, Some(VFader(Defaults.float, Defaults.color, Defaults.range)))
     }
 
     test("int-dial") {
@@ -57,11 +57,11 @@ class ParseGenericParams extends FunSuite {
 
 
     test ("widget with no params") {
-        check("dial: { color: red }", dial, Some(Ui(Dial(Defaults.float, "red"), Param(None, None))))
+        check("dial: { color: red }", dial, Some(Ui(Dial(Defaults.float, "red", Defaults.range), Param(None, None))))
     }
 
     test ("widget with id") {
-        check( "{ dial: { color: red, init: 0.0 }, id: amp }", dial, Some(Ui(Dial(0.0f, "red"), Param(Some("amp"), None))))
+        check( "{ dial: { color: red, init: 0.0 }, id: amp }", dial, Some(Ui(Dial(0.0f, "red", Defaults.range), Param(Some("amp"), None))))
     }
 }
 
@@ -71,13 +71,13 @@ class PrimUi extends FunSuite {
     def check[A](str: String, res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
-    val d = Ui(Dial(Defaults.float, Defaults.color))
+    val d = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
 
     test("ui dial") {
         check("dial: {}", Some(d))
     }
 
-    val hf = Ui(HFader(Defaults.float, Defaults.color))
+    val hf = Ui(HFader(Defaults.float, Defaults.color, Defaults.range))
     test("ui hfader") {
         check("hfader: {}", Some(hf))
     }
@@ -89,7 +89,7 @@ class CompoundWidgets extends FunSuite {
     def check[A](str: String, w: Widget[A], res: Option[A]) = 
         assert(Lang.read(str).flatMap(x => w.run(x)) == res)
 
-    val p = Ui(Dial(Defaults.float, Defaults.color))
+    val p = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
 
     test("hor") {
         check("hor: [dial: {}, dial: {}, dial: {}]", hor, 
@@ -109,7 +109,7 @@ class UiCompoundWidgets extends FunSuite {
     def check(str: String, res: Option[Ui]) = 
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
-    val p = Ui(Dial(Defaults.float, Defaults.color))
+    val p = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
 
     test("hor") {
         check("hor: [dial: {}, dial: {}, dial: {}]",  
@@ -187,6 +187,6 @@ class UiSend extends FunSuite {
     test("from sym") {
         check(
             "{ dial: { init: 0.0, color: red}, send: [msg: { client: self, path: /amp, args: []}]}", 
-            Some(Ui(Dial(0, "red"), Param(None, Some(Send(List(Msg("self", "/amp", Nil))))))))
+            Some(Ui(Dial(0, "red", Defaults.range), Param(None, Some(Send(List(Msg("self", "/amp", Nil))))))))
     }
 }
