@@ -127,6 +127,8 @@ object Convert {
             case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))                     
             case P.HCheck(init, len, color, texts, allowDeselect)  => listen.int(HCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
             case P.VCheck(init, len, color, texts, allowDeselect)  => listen.int(VCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
+            case P.CircleButton(color)              => listen.pure[Unit,CirclePushButton](CirclePushButton(palette(color))(onButton(st, send)))
+            case P.CircleToggle(init, color)        => listen.toggle(CircleToggleButton(init, palette(color))(onBoolean(st, send)))
 
             case P.MultiToggle(init, (sizeX, sizeY), color, texts) => listen.multiToggle(MultiToggle(init, sizeX, sizeY, palette(color), palette(Defaults.textColor), texts)(onMultiToggle(st, send))).map(listen.textList)
 
