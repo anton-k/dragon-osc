@@ -2,6 +2,7 @@ package dragon.osc.parse.hotkey
 
 import scala.util.Try
 import scala.swing.event.Key
+import dragon.osc.parse.util._
 
 // see full list of keys at: http://www.scala-lang.org/api/2.11.2/scala-swing/#scala.swing.event.Key$@ValueextendsOrdered[Enumeration.this.Value]withSerializable
 

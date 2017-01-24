@@ -33,7 +33,7 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component, ho
 
                 contents += window.content 
                 reactions += {
-                    case KeyPressed(_, key, _, _) => hotKeys.act(st, HotKey(Nil, key))
+                    case keyPressed@KeyPressed(_, _, _, _) => hotKeys.act(st, HotKey.fromKeyPress(keyPressed))
                 }
                 focusable = true
                 requestFocus
