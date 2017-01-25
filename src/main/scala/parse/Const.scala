@@ -51,6 +51,7 @@ object Names {
     val color1 = "color1"
     val color2 = "color2"
     val init  = "init"
+    val initSend = "init-send"
     val initX = "init-x"
     val initY = "init-y"
     val text = "text"

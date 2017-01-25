@@ -140,5 +140,5 @@ object Read {
 
     def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
     
-    def root: Widget[Root] = Widget.lift3(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read, Send.initMessages)
+    def root: Widget[Root] = Widget.lift3(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read, Widget.fromAttr(Send.initMessages))
 }
