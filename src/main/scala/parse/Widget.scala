@@ -30,6 +30,11 @@ object Widget {
         ap(ma.map(a => (b: B) => f(a, b)), mb)
     }
 
+
+    def lift3[A,B,C,D](f: (A,B,C) => D, ma: Widget[A], mb: Widget[B], mc: Widget[C]): Widget[D] = {
+        ap(lift2[A,B,C=>D]((a, b) => (c: C) => f(a,b, c), ma, mb), mc)
+    }    
+
     def fromAttr[A](a: Attr[Option[A]]): Widget[A] = new Widget[A] {
         def run(obj: Lang) = a.run(obj)
     }
