@@ -56,6 +56,19 @@ Now we can run the app with run command:
 
 Where `config.yaml` is our own file where we can specify our OSC-controller.
 
+Also by typing in sbt prompt:
+
+~~~
+> assembly
+~~~
+
+We can create a single jar which we can run with java:
+
+~~~
+> java -jar dragon-osc.jar
+~~~
+
+The jar-file will be written in the directory target/scala-2.*
 
 ### Hello world!
 
