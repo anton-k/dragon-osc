@@ -136,7 +136,7 @@ class UiCompoundWidgets extends FunSuite {
 
     val w = Window(Defaults.string, None, emptyUi, emptyKeys)
     test("root") {
-        check[Root]("main: [window: {}, window: {}]", root, Root(List(w,w), emptyKeys))
+        check[Root]("{ main: [window: {}, window: {}] }", root, Root(List(w,w), emptyKeys, Nil))
     }
 }
 

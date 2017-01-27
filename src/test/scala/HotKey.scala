@@ -39,11 +39,11 @@ class HotKeyTest extends FunSuite {
     }
 
     test ("prim key 1") {
-        checkKey("key: [alt, \"1\"]", Some(HotKey(List(Key.Alt), Key.Key1)))        
+        checkKey("key: [alt, \"1\"]", Some(HotKey(Set(Key.Alt), Key.Key1)))        
     }
 
     test ("prim key 2") {
-        checkKey("key: [alt, shift, a]", Some(HotKey(List(Key.Alt, Key.Shift), Key.A)))
+        checkKey("key: [alt, shift, a]", Some(HotKey(Set(Key.Alt, Key.Shift), Key.A)))
     }
 
     test ("prim key 3") {
@@ -51,7 +51,7 @@ class HotKeyTest extends FunSuite {
     }
 
     test ("prim key 4") {
-        checkKey("key: a", Some(HotKey(Nil, Key.A)))
+        checkKey("key: a", Some(HotKey(Set.empty, Key.A)))
     }
 
     def checkEvent(str: String, res: Option[HotKeyEvent]) =
@@ -59,7 +59,7 @@ class HotKeyTest extends FunSuite {
 
     test ("event 1") {
         checkEvent("{ key: a, send: [ msg: { path: /amp, args: [true]}] }",
-            Some(HotKeyEvent(HotKey(Nil, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None)))
+            Some(HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None)))
     }
 
 
@@ -80,8 +80,8 @@ class HotKeyTest extends FunSuite {
                         path: /cps
                         args: [false]
         """, Some(Keys(List(
-                HotKeyEvent(HotKey(Nil, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None ),
-                HotKeyEvent(HotKey(Nil, Key.B), Send(List(Msg(Defaults.client, "/cps", List(PrimArg(PrimBoolean(false))))), Map()), None )
+                HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None ),
+                HotKeyEvent(HotKey(Set.empty, Key.B), Send(List(Msg(Defaults.client, "/cps", List(PrimArg(PrimBoolean(false))))), Map()), None )
             ))))
     }
 

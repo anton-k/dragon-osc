@@ -6,6 +6,7 @@ import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.attr._
 import dragon.osc.parse.util._
+import dragon.osc.parse.widget._
 
 case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map(), onValueOff: Map[String, List[Msg]] = Map())
 case class Msg(client: String, address: String, args: List[Arg])
@@ -22,7 +23,12 @@ object Send {
 
     val read: Attr[Option[Send]] = Attr.attr(Names.send, (x: Lang) => Some(readMessages(unwind(x))), None)
 
-    val initMessages: Attr[Option[List[Msg]]] = Attr.attr(Names.initSend, (x: Lang) => Some(readMsgList(unwind(x))), None)
+    val initMessages: Widget[List[Msg]] = new Widget[List[Msg]] {
+        def run(obj: Lang) = Some(obj.getKey(Names.initSend) match {
+            case Some(x) => readMsgList(x) getOrElse Nil
+            case None    => Nil
+        })
+    }
 
     def readMessages(obj: Lang) = obj match {
         case ListSym(xs) => Some(Send(xs.map(readMsg).flatten))

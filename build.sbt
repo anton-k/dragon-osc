@@ -25,3 +25,9 @@ lazy val app = (project in file("app")).
     mainClass in assembly := Some("App")
     // more settings here ...
   )
+
+
+assemblyMergeStrategy in assembly := {
+ case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+ case x => MergeStrategy.first
+}
