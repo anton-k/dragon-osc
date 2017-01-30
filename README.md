@@ -103,7 +103,7 @@ We have defined a single UI-element that only shows the string. The widget is a 
 Let's go to the more interesting widgets. We can stack many widgets horizontally or vertically with `hor` and `ver`.
 Let's create some knobs:
 
-![https://github.com/anton-k/dragon-osc/blob/master/doc/images/hello-dials-1.png](three dials)
+[Three dials](doc/images/hello-dials-1.png)
 
 ~~~yaml
 main:
