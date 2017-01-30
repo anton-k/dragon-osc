@@ -173,6 +173,12 @@ run --verbose  -i hello.yaml -c jack=7654
 
 Also we specify the flag `--verbose` to see the prints of the sent messages. 
 
+Notice that when we send messages we use the sign `-` before the `msg`-tag. 
+It means that we can send multiple messages with the same click or switch.
+This can be useful for complex updates of the setup. When for instance
+tack changes and we want to preload all the samples and change the names of
+all widgets for the specific track.
+
 ### Faders
 
 We can substitute dials with faders:
@@ -315,8 +321,7 @@ The general idea is to write the name of the identifier in the path and set the 
 
 We can make relative changes. We can add specific amount to the current value of the float producing widget (like `dial`, `hfader` or `vfader`).
 
-~~~
-yaml
+~~~yaml
 { path: "/id/add-float", args: [0.1] }
 ~~~
 
@@ -326,14 +331,14 @@ We write id in the path next we write `add-float` and pass the value to add in t
 
 We can switch the value of the toggle with syntax:
 
-~~~
+~~~yaml
 { path: "/id/toggle", args: [] }
 ~~~
 
 There is a useful widget called `multi-toggle` it contains a matrix of toggles.
 We can toggle the value in the give cell like this:
 
-~~~
+~~~yaml
 { path: "/id/multi-toggle", args: [2] }
 ~~~
 
@@ -341,19 +346,140 @@ We can toggle the value in the give cell like this:
 
 We can set colors:
 
-~~~
+~~~yaml
 { path: "/id/set-color", args: [color-name] }
 ~~~
 
 #### Set texts
 
-We can set text for labels:
+We can set text for widgets:
 
-~~~
+~~~yaml
 { path: "/id/set-text", args: [text] }
 ~~~
 
+
+We can set text for multi-toggles:
+
+~~~yaml
+{ path: "/id/multi-text", args: [2, text] }
+~~~
+
+#### Sending the OSC-messages to the self
+
+Sometimes we want to update the look and feel of the app with widgets o the app itself.
+For instance if we press on the given button all names in the specific widget should change.
+It's possible to achieve this by sending the messages to the client with the name `"self"`.
+The `self` is a reserved name for this case.
+
 ### Hot-keys
+
+A cool feature of the app is the ability to create complex hot-key mappings.
+The mappings can be not only global for the entire app but also specific to windows
+and even to tabs. With this feature we can convert our keyboard to sophisticated controller.
+
+To add global hot-keys we use the tag `keys` at the same level as `main`-tag. To add window specific
+hot-keys we use it at the same level as `window`` to add tab specific keys we add it
+at the same level as `page`-tag:
+
+
+* global hot-keys:
+
+    ~~~yaml
+    main:
+        - window: { ... }
+        - window: { ... }
+    keys:
+        - key: { ... }
+        - key: { ... }
+    ~~~
+
+* window specific keys. They are active only when the window is selected:
+
+    ~~~yaml
+    main:
+        - window: { ... }
+          keys: [ ... ]
+        - window: { ... }
+          keys: [ ... ]
+    ~~~
+
+* tab specific keys. They are active only when the page is selected:
+
+    ~~~yaml    
+    main:
+        - window: 
+            content:
+                tabs:
+                    - page: { ... }
+                      keys: [ ... ]
+                    - page: { ... }
+                      keys: [ ... ]               
+    ~~~
+
+
+#### How to specify the key
+
+The `keys`-tag contains a list of hot-keys. The hot-key triggers the process of sending OSC-messages.
+That's it. When we press a certain key the list of messages is going to be sent.
+
+So there are two components: key name and the list of messages.
+
+~~~yaml
+keys:
+    - key: "a"
+      send:  [ message list ]
+
+    - key: "b"
+      send: [message list ]
+~~~
+
+We write the name of the hot-key in the `key` field and we specify
+the message list in  the same way as we did it with widgets. We use the `send`-tag.
+
+If want to use the key pressed with modifier such as **Control** or **Shift** we 
+should list all the modifiers in the list in the `key`-tag:
+
+~~~yaml
+keys:
+    - key: [ ctrl, a]
+      send:  [ message list ]
+
+    - key: [shift, alt, b]
+      send: [message list ]
+~~~
+
+All keys are follow their latin names, there are also special keys like:
+
+~~~yaml
+ctrl, alt, shift, windows, 
+delete, insert, home, end
+up, down, left, right, page-up, page-down
+f1, f2, f3, ...
+1,2,3,4, ...
+~~~
+
+### Init script
+
+When the app starts it sends all the values from the `init`-tags of the widgets.
+Sometimes we want to execute specific commands on start up to set up the scene.
+we can specify all the messages to send on start up in the tag: `init-send` :
+
+~~~yaml
+main: { ... }
+keys: [ ... ]
+init-send: [ message list ]
+~~~
+
+### Lock the exit
+
+If we close any of the window all other widows are going to shut down.
+It can be undesirable to shut down the windows at the single click. 
+It can happen by mistake in the mid of the concert and we can lost 
+all the visual representation of the scene. to prevent this from happening
+we can use the flag: `--lock-on-exit`. 
+
+It will require to type the word `exit` to close the app.
 
 ### Widgets
 
