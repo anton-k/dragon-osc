@@ -103,6 +103,8 @@ We have defined a single UI-element that only shows the string. The widget is a 
 Let's go to the more interesting widgets. We can stack many widgets horizontally or vertically with `hor` and `ver`.
 Let's create some knobs:
 
+![https://github.com/anton-k/dragon-osc/blob/master/doc/images/hello-dials-1.png](three dials)
+
 ~~~yaml
 main:
    - window:
@@ -458,6 +460,19 @@ up, down, left, right, page-up, page-down
 f1, f2, f3, ...
 1,2,3,4, ...
 ~~~
+
+#### Changing the tabs with hot keys
+
+Notice that the tab can also produce the OSC-message. Every tab change is
+equivalent to setting the integer state of the tab to the given integer. 
+
+So we can ive the tab-widget a name (`id`) and send the messages to it like this:
+
+~~~yaml
+msg: { client: "self", path: "/tab-id", args: [3] }
+~~~
+
+It can be useful to quickly change the tabs and possibly hot-key mappings.
 
 ### Init script
 
