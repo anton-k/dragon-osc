@@ -255,9 +255,11 @@ the toggle messages with special syntax:
 We can write `case value` and the message is going to be sent only if current value
 equals to the case. Also we can use this method with integer and string
 
+There are many more widgets you can check out the full list at the section `Widgets` of this guide.
+
 ### Let's make tabs
 
-Also we can group Ui's with tabs:
+Also we can group UI's with tabs:
 
 ~~~yaml
 tabs:
@@ -269,14 +271,103 @@ tabs:
         content: ...
 ~~~
 
+### Using app as a server
 
-### The OSC-messages
+We can not only send OSc-messages also we can receive messages.
+We can send the messages to app to simulate the user interaction
+and to change some basic look and feel attributes (like colors or texts).
+
+To receive messages we should specify the port on which we expect messages to come.
+we do it with command line flag `-s` or `--server`:
+
+~~~
+> run -s 8800 -i config.yaml -c unit=7000
+~~~
+
+To send the message to interact with the widget we need to give it a name or an `id`entifier:
+Let's for example give the identifier to the fader:
+
+~~~
+vfader:
+    init: 0.2
+    color: olive
+id: amp
+~~~
+
+We can send the OSC-message to our app to update the value of `amp` fader:
+
+~~~yaml
+{ path: "/amp", args: [0.5] }
+~~~
+
+This will update the visual widget and send all the messages for the widget. 
+There is a hack if we want only to update the visual representation but not send the 
+messages of the widget. We should prefix with "/cold":
+
+~~~yaml
+{ path: "/cold/amp", args: [0.5] }
+~~~
+
+Like this we can set the toggles  or click the button (with button the argument list is empty).
+The general idea is to write the name of the identifier in the path and set the value in the arguments.
+
+#### Updating the float producing widgets
+
+We can make relative changes. We can add specific amount to the current value of the float producing widget (like `dial`, `hfader` or `vfader`).
+
+~~~
+yaml
+{ path: "/id/add-float", args: [0.1] }
+~~~
+
+We write id in the path next we write `add-float` and pass the value to add in the argument.
+
+#### Updating values of the toggles
+
+We can switch the value of the toggle with syntax:
+
+~~~
+{ path: "/id/toggle", args: [] }
+~~~
+
+There is a useful widget called `multi-toggle` it contains a matrix of toggles.
+We can toggle the value in the give cell like this:
+
+~~~
+{ path: "/id/multi-toggle", args: [2] }
+~~~
+
+#### Set colors
+
+We can set colors:
+
+~~~
+{ path: "/id/set-color", args: [color-name] }
+~~~
+
+#### Set texts
+
+We can set text for labels:
+
+~~~
+{ path: "/id/set-text", args: [text] }
+~~~
 
 ### Hot-keys
 
 ### Widgets
 
+
 ### Colors
+
+Here is the list of color names: 
+
+~~~
+navy, blue, aqua, teal, olive, green, lime, yellow, 
+orange, red, maroon, fuchsia, purple, black, gray, silver, white, any.
+~~~
+
+`any` -- means any color at random. 
 
 
 
