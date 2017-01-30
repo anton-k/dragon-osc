@@ -72,9 +72,203 @@ The jar-file will be written in the directory target/scala-2.*
 
 ### Hello world!
 
-### Let's add some toggles and knobs
+Let's create a simple UI program and invoke it with our program. 
+
+~~~yaml
+main:
+   - window:
+      title: app
+      size: [200, 100]
+      content:
+        label:
+          text: "Hello World!"
+~~~
+
+Let's save the file to hello.yaml load the project with `sbt` and invoke the app with it:
+
+~~~
+> sbt
+> run -i hello.yaml
+~~~
+
+The flag `-i` says where is the config file for the app.
+Every config-file should has the root element called `main`. 
+Then within the `main` we list the windows of the app. 
+
+Window has the attributes: `title` (string), `size` (pair encoded as list), `content` (all ui elements).
+We have defined a single UI-element that only shows the string. The widget is a `label`.
+
+#### Simple layout 
+
+Let's go to the more interesting widgets. We can stack many widgets horizontally or vertically with `hor` and `ver`.
+Let's create some knobs:
+
+~~~yaml
+main:
+   - window:
+      title: app
+      size: [200, 100]
+      content:
+        hor:
+          - dial: 
+              init: 0.25
+              color: "orange"
+          - dial:
+              init: 0.5
+              color: "blue"              
+          - dial:
+              init: 0.75
+              color: "olive"
+~~~
+
+We create three knobs with different initial values and colors.
+We can change the values with mouse. Try to change the `hor` with `ver` and see what happens.
+
+How can we send the OSC-messages with those knobs?
+
+#### The OSC-messages
+
+The OSC-message consists of three parts:
+
+* `client` to whom we send the message
+
+* `path`  on which the recipient listens
+
+* `args` the list of arguments
+
+
+Here is the simple message:
+
+~~~yaml
+msg:
+    client: jack
+    path:   /amp
+    args:   [0.2]
+~~~
+
+We can specify the message with attribute `send`:
+
+~~~yaml
+- dial: 
+    init: 0.25
+    color: "orange"
+  send:
+    - msg:
+        client: jack
+        path:   /amp
+        args:   [$0]
+~~~
+
+Notice that the field `send` is on the same level as dial` (not inside the send's fields).
+
+The special syntax `$int` means read the value from the N's input of the current value of the widget.
+In this example we read a single value of the knob. 
+
+The OSC-servers listen on specific ports. In the app the ports are specified by names. We assign the
+actual port to the name in the command line argument `-c`  or `--clients`: 
+
+~~~
+run --verbose  -i hello.yaml -c jack=7654
+~~~
+
+Also we specify the flag `--verbose` to see the prints of the sent messages. 
+
+### Faders
+
+We can substitute dials with faders:
+
+~~~yaml
+main:
+   - window:
+      title: app
+      size: [300, 100]
+      content:
+        ver:
+          - hor:
+              - label:
+                  text: cps
+              - hfader: 
+                  init: 0.25
+                  color: "orange"
+                send:
+                  - msg:
+                      client: synth
+                      path:   /amp
+                      args:   [$0]
+          - hor:
+              - label:
+                  text: amp
+              - hfader:
+                  init: 0.5
+                  color: "blue" 
+                send:
+                  - msg:
+                      client: synth
+                      path:   /amp
+                      args:   [$0]
+~~~
+
+We control two parameters amplitude and frequency of our synthesizer. 
+
+### Buttons and toggles
+
+Let's send the notes in the separate window. The content of the first window is going to be the same but
+we are going to add another window with button and toggle:
+
+~~~yaml
+main:
+   - window:
+     title: ap1
+     content:
+        ...
+        ...
+   - window:
+      title: ap2
+      content:
+        hor:
+          - button:
+              color: orange
+            send:
+              - msg: { client: "synth", path: "/play-note", args: [440] }
+          - toggle:
+              init: false
+              color: green
+            send: 
+              - msg: { client: "synth", path: "/mute", args: [$0] }
+~~~
+
+The button sends the message when it's pressed.
+The toggle can send two types of messages. Also we can specify
+the toggle messages with special syntax:
+
+~~~yaml
+          - toggle:
+              init: false
+              color: green
+            send: 
+              case true:
+                  - msg: { client: "synth", path: "/play", args: [] }
+              case false:
+                  - msg: { client: "synth", path: "/stop", args: [] }
+~~~
+
+We can write `case value` and the message is going to be sent only if current value
+equals to the case. Also we can use this method with integer and string
 
 ### Let's make tabs
+
+Also we can group Ui's with tabs:
+
+~~~yaml
+tabs:
+    - page:
+        title: first
+        content: ...
+    - page:
+        title: second
+        content: ...
+~~~
+
 
 ### The OSC-messages
 
