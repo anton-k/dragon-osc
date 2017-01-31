@@ -24,7 +24,7 @@ type Int2 = (Int, Int)
 data Root = Root 
     { rootWindows :: [Window] 
     , rootKeys    :: Keys 
-    , rootInitOSc :: [Msg] }
+    , rootInitOsc :: [Msg] }
 
 data Window = Window 
     { windowTitle   :: String
