@@ -3,3 +3,5 @@ project/project
 project/target
 target/
 rest
+json-gen/hs/dragon-osc/dist
+

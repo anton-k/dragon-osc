@@ -107,7 +107,7 @@ It can greatly simplify the process.
 There is a Haskell library that allows you to write the config files easily. Every widget and unit of config
 file is encoded as a normal value. There are plans to make the config-file generators for python or scala. 
 
-Yo can find the source vcode for generators in the directory `api`.
+Yo can find the source vcode for generators in the directory `json-gen`.
 
 #### Simple layout 
 
