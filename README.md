@@ -98,6 +98,17 @@ Then within the `main` we list the windows of the app.
 Window has the attributes: `title` (string), `size` (pair encoded as list), `content` (all ui elements).
 We have defined a single UI-element that only shows the string. The widget is a `label`.
 
+#### JSON config file
+
+All examples in this guide use YAML as a markup language for config files. But notice that you can
+also use JSON. There are many JSON libraries for many languages. With them we can create our config-file with code. 
+It can greatly simplify the process. 
+
+There is a Haskell library that allows you to write the config files easily. Every widget and unit of config
+file is encoded as a normal value. There are plans to make the config-file generators for python or scala. 
+
+Yo can find the source vcode for generators in the directory `api`.
+
 #### Simple layout 
 
 Let's go to the more interesting widgets. We can stack many widgets horizontally or vertically with `hor` and `ver`.
@@ -864,3 +875,6 @@ msg:
     path: /some/path
     args: [ ... ]
 ~~~
+
+
+
