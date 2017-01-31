@@ -95,4 +95,8 @@ def int_dial(init = None, color = None, range = None):
 def label(color = None, text = None):
     return { "label": dict_opt({}, { "color": color, "text": text })}
 
+def hcheck(init = None, color = None, size = None, texts = None, allow_deselect = None):
+    return { "hcheck": dict_opt({}, { "init": init, "color": color, "size": size, "texts": texts, "allow-deselect": allow_deselect })}
 
+def vcheck(init = None, color = None, size = None, texts = None, allow_deselect = None):
+    return { "vcheck": dict_opt({}, { "init": init, "color": color, "size": size, "texts": texts, "allow-deselect": allow_deselect })}
