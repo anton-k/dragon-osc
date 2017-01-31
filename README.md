@@ -341,8 +341,10 @@ There is a useful widget called `multi-toggle` it contains a matrix of toggles.
 We can toggle the value in the give cell like this:
 
 ~~~yaml
-{ path: "/id/multi-toggle", args: [2] }
+{ path: "/id/multi-toggle", args: [1, 2] }
 ~~~
+
+Where `args`-list contains x, y coordinates of the cell
 
 #### Set colors
 
@@ -364,7 +366,7 @@ We can set text for widgets:
 We can set text for multi-toggles:
 
 ~~~yaml
-{ path: "/id/multi-text", args: [2, text] }
+{ path: "/id/set-text-list", args: [2, text] }
 ~~~
 
 #### Sending the OSC-messages to the self
@@ -496,9 +498,6 @@ we can use the flag: `--lock-on-exit`.
 
 It will require to type the word `exit` to close the app.
 
-### Widgets
-
-
 ### Colors
 
 Here is the list of color names: 
@@ -510,6 +509,297 @@ orange, red, maroon, fuchsia, purple, black, gray, silver, white, any.
 
 `any` -- means any color at random. 
 
+### Widgets
+
+Here is the list of all available UI-elements:
+
+#### Layout:
+
+##### Horizontal layout
+
+~~~yaml
+hor:
+    - widget1
+    - widget2
+    - widget3
+~~~
 
 
+##### Vertical layout
+
+~~~yaml
+ver:
+    - widget1
+    - widget2
+    - widget3
+~~~
+
+#####  Tabs:
+
+~~~yaml
+tabs:
+    - page:
+        title: "page A"
+        content: { ... }            
+    - page:
+        title: "page B"
+        content: { ... }
+~~~
+
+Tabs can be placed not only at the root of the window but also anywhere inside the layout.
+Tabs are also integer value producers/ When can send OSC-messages on selecting the tab:
+
+~~~yaml
+tabs:
+    - page: { ... }
+    - page: { ... }
+send:
+    - msg: { ... }
+~~~
+
+
+##### Empty space
+
+We can create an empty space of the given size within the vertical or horizontal layout.
+
+~~~
+space: 35
+~~~
+
+#### Display
+
+With `label` we can show a static text:
+
+~~~yaml
+label: 
+    text: "hi"
+    color: black
+~~~
+
+#### Value producers
+
+
+##### Button
+
+With `button` we can produce single message (click or ping)
+
+~~~yaml
+button:
+    color: orange
+    text:  "Click me"    # Optional field
+send:
+    - msg: { ... }
+~~~
+
+##### Toggle
+
+With toggles we can send alternating messages when toggle on or off happens:
+
+~~~yaml
+toggle:
+    color: olive
+    text:  click
+    init:  true | false
+send:
+    case true:
+        - msg: { ... }
+    case false:
+        - msg: { ... }
+~~~
+
+Or we can pass the current value with the `$0` reference.
+
+~~~yaml
+- msg: { client: name, path: /on/a, args: [$0] }
+~~~
+
+#### Circle buttons and toggles
+
+There are circle toggles and buttons. They behave like the normal corresponding widgets
+but look smaller and we can not show text with them. Their tags are `circle-button` and `circle-toggle`.
+
+#### Multi-toggle buttons
+
+We can create a matrix of toggles with widget `multi-toggle`:
+
+~~~yaml
+multi-toggle:
+    init: [0, 1, 2]
+    size: [2, 4]
+    texts: [a, b, c, d, ...]
+    color: purple
+~~~
+
+#### A float producers
+
+We can produce a single float value with `dial`, `vfader`, `hfader`. 
+They send similar OSC-messages but the visual representation is different.
+The example is for `dial`'s but we can substitute the tag with `vfader` and `hfader`
+to produce vertical and horizontal faders:
+
+~~~yaml
+dial:
+    color: green
+    init:  0.5
+    range: [0, 1]  
+~~~
+
+All fields are optional. The default range is 0 to 1. Some synthesizers expect
+the value to be in midi range 1 to 127. We can alter the range like this:
+
+~~~yaml
+dial:
+    color: green
+    init:  70
+    range: [1, 127]  
+~~~
+
+#### An integer producers
+
+There are several widgets that produce integer values.
+
+##### Send integers
+
+We can send the value with reference `$0` also note that we can use `case`:
+
+~~~yaml
+send:
+    case 0:
+        - msg: { ... }
+    case 1:
+        - msg: { ... }
+    case 2:
+        - msg: { ... }
+    default:
+        - msg: { ... }
+~~~
+
+There is a shortcut:
+
+~~~yaml
+send:
+    int:
+        - msg: { ... }  # case 0
+        - msg: { ... }  # case 1
+        - msg: { ... }  # case 2
+~~~
+
+##### Integer knob
+
+`int-dial` -- looks like a knob but produces only integer values. The parameters are the same as for the dial:
+
+~~~yaml
+int-dial:
+    color: olive
+    init:  3
+    range: [1, 10]
+~~~
+
+##### Radio buttons
+
+We can represent multiple choice with `hcheck` and `vcheck`.
+
+~~~yaml
+hcheck:
+    init: 0
+    size: 4
+    color: red
+    texts: [one, two, three four]
+    allow-deselect: true/false
+~~~
+
+The parameters are self-explanatory. The `allow-deselect` let's you turn off the button on second click.
+If it's set to false we can only switch between the cases.
+
+##### Drop down list
+
+`drop-down-list` -- list of choices in the drop down list.
+
+~~~yaml
+drop-down-list:
+    init: 2
+    texts: [low-pass, high-pass, band-pass, notch]
+~~~
+
+#### Send strings
+
+With `text-input` we can send strings:
+
+~~~yaml
+text-input:
+    init: name
+    color: blue
+    text-length: 7  
+~~~
+
+#### Send file names
+
+We can select files.
+
+~~~yaml
+text-input:
+    init: name
+    color: blue
+    text: "Get file:" 
+~~~
+
+#### XY-pads
+
+We can send a pair of floats with `xy-pad`:
+
+~~~yaml
+xy-pad:
+    init:  [0.5, 0.25]
+    color: blue
+~~~
+
+#### Send ranges
+
+There are several widgets to select float intervals or ranges: `hfader-range`, `vfader-range`, `xy-pad-range`:
+
+~~~yaml
+hfader-range:
+    init:  [0.2, 0.5]
+    color: blue
+~~~
+
+The `vfader-range` is the same as `hfader-range`. With `y-pad-range` we can select a pair of intervals:
+
+~~~yaml
+xy-pad-range:
+    init: [xMin, xMax, yMin, yMax]
+    color: orange
+~~~
+
+We can reference the values from the body of OSC-message with references: `$0`, `$1`, `$2`, `$3`.
+
+#### Tabbed radio buttons
+
+There is a special widget to pack many options. 
+
+~~~yaml
+double-check:
+    init: [0, 2]
+    sizes: [4, 4, 3]
+    color1: aqua
+    color2: blue
+    texts: [[a,b,c,d], [e,f,g,h], [x,y,z]]
+    orient: [bool, bool, bool]
+    allow-deselect: bool
+~~~
+
+It stacks several radio-button groups together with tabs. 
+So there are two radio button groups, one to select the sub-groups
+and another one to select the items. 
+
+The orient is a triple of booleans. They define the representation
+of the widget. The three booleans are:
+
+* `isFirst` does the first panel comes first
+
+* `isFirstHor` should the **first** panel be horizontal
+
+* `isSecondHor` should the **second** panel be horizontal
+
+Sizes  contains the sizes of all sub-groups and also it specifies how many sub-groups we need (it's the length of the list).
 
