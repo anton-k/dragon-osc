@@ -803,3 +803,64 @@ of the widget. The three booleans are:
 
 Sizes  contains the sizes of all sub-groups and also it specifies how many sub-groups we need (it's the length of the list).
 
+We can select the values with OSC-messages if we send:
+
+~~~yaml
+mag: { client: self, path: /id-of-unit/double-check/1, args: [int] }  # to update first group
+
+mag: { client: self, path: /id-of-unit/double-check/2, args: [int] }  #           second  
+~~~
+
+#### Advanced OSC-messages
+
+##### Reference to the value of the widget
+
+We can reference the values of the widget-state with references `$N`, where `N` is some integer number.
+
+~~~
+msg: 
+    client: name
+    path:   /some/path
+    args:   [$0]
+~~~
+
+##### Send message on deselect
+
+Some widgets represent selection from multiple choices. We can send messages
+not only on selection but also on de-selection.  With selection we prefix 
+the choice number with `case`. For de-selection we can use `case-off`:
+
+~~~
+double-check:
+    sizes: [8, 8, 8]
+    orient: [true, true, false]
+    texts: [ ... ]
+    id: tracks
+send:     
+    case 0 0:  
+        - msg: { ... }
+    case-off 0 0:
+        - msg: { ... we can close the resources for this choice ...  }
+
+    case 0 1:  
+        - msg: { ... }
+    case-off 0 1:
+        - msg: { ... }
+
+    default:
+        - msg: { ... }
+~~~
+
+Notice how we can use the multiple values in the `case`. We should delimit them with spaces.
+
+##### The self client
+
+We can send the messages to the app itself to change the look and feel or to trigger the widgets with hotkeys.
+We can use it like this:
+
+~~~
+msg: 
+    client: self
+    path: /some/path
+    args: [ ... ]
+~~~
