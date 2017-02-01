@@ -77,16 +77,16 @@ def hfader(init = None, color = None, range = None):
 def vfader(init = None, color = None, range = None):
     return { "vfader": dict_opt({}, { "init": init, "color": color, "range": from_pair_range(range) })}
 
-def toggle(init = None, color: None, text = None):
+def toggle(init = None, color= None, text = None):
     return { "toggle": dict_opt({}, { "init": init, "color": color, "text": text })}
 
-def button(color: None, text = None):
+def button(color = None, text = None):
     return { "button": dict_opt({}, { "color": color, "text": text })}
 
-def circle_toggle(init = None, color: None):
+def circle_toggle(init = None, color = None):
     return { "circle-toggle": dict_opt({}, { "init": init, "color": color, "text": text })}
 
-def circle_button(color: None):
+def circle_button(color = None):
     return { "circle-button": dict_opt({}, { "color": color, "text": text })}
 
 def int_dial(init = None, color = None, range = None):
@@ -100,3 +100,37 @@ def hcheck(init = None, color = None, size = None, texts = None, allow_deselect 
 
 def vcheck(init = None, color = None, size = None, texts = None, allow_deselect = None):
     return { "vcheck": dict_opt({}, { "init": init, "color": color, "size": size, "texts": texts, "allow-deselect": allow_deselect })}
+
+def xypad(init = None, color = None):
+    return { "xy-pad": dict_opt({}, { "init": from_pair_range(init), "color": color }) }
+
+def multi_toggle(init = [], size = None, color = None, texts = []):
+    return { "multi-toggle": dict_opt({ "texts": texts }, { "init": init, "size": from_pair_range(size), "color": color }) }
+
+def hfader_range(init = None, color = None):
+    return { "hfader-range": dict_opt({}, { "init": from_pair_range(init), "color": color }) }
+
+def vfader_range(init = None, color = None):
+    return { "vfader_range": dict_opt({}, { "init": from_pair_range(init), "color": color }) }    
+
+def xypad_range(init_x = None, init_y = None, color = None):
+    return { "xy-pad-range": dict_opt({}, { "init-x": from_pair_range(init_x), "init-y": from_pair_range(init_y), "color": color })}
+
+def drop_down_list(init = None, texts = []):
+    return { "drop-down-list": dict_opt({ "texts": texts }, { "init": init}) }
+
+def text_input(init = None, color = None, text_length = None):
+    return { "text-input": dict_opt({}, { "init": init, "color": color, "text-length": text_length }) }
+
+def file_input(init = None, color = None, text = None):
+    return { "file-input": dict_opt({}, { "init": init, "color": color, "text": text }) }
+
+def double_check(init = None, sizes = [], color1 = None, color2 = None, texts = [], orient = None, allow_deselect = None):
+    return { "double-check": dict_opt({"texts": texts, "sizes": sizes}, { "init": from_pair_range(init) }), "color1": color1, "color2": color2, "orient": orient, "allow-deselect": allow_deselect }
+
+def orient(is_first = True, is_first_hor = True, is_second_hor = True):
+    return [is_first, is_first_hor, is_second_hor]
+
+def write_json(filename, data):
+    with open(filename, 'w') as outfile:
+        json.dump(data, outfile)

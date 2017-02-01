@@ -7,7 +7,8 @@ module Dragon.Osc(
     Send(..), Msg(..), Args, Arg(..), 
     Page(..), Sym(..), Orient(..),
     setId, setSend, setMsgs, setMsg, ui, sendMsg, onBool, onBools, 
-    multiUi
+    multiUi,
+    writeJson
 ) where
 
 import Data.Aeson
@@ -16,6 +17,8 @@ import Control.Arrow(first, second)
 import qualified Data.Map as M
 import Data.Monoid
 import Data.Maybe
+
+import qualified Data.ByteString.Lazy as LB
 
 type Size = (Int, Int)
 type Float2 = (Float, Float)
@@ -224,7 +227,9 @@ instance ToJSON Sym where
         MultiToggle  initSet size color texts -> "multi-toggle" =: object [ "init" .= initSet, "color" .= color, "texts" .= texts, "size" .= fromPair size ]
         HCheck init leng color texts allowDeselect -> "hcheck" =: (object $ (let xs = [ "init" .= init, "size" .= leng, "color" .= color, "texts" .= texts ] in maybe xs (:xs) (fmap ("allow-deselect" .=) allowDeselect)))
         VCheck init leng color texts allowDeselect -> "vcheck" =: (object $ (let xs = [ "init" .= init, "size" .= leng, "color" .= color, "texts" .= texts ] in maybe xs (:xs) (fmap ("allow-deselect" .=) allowDeselect)))
-        
+
+        XYPad (initX, initY) color -> "xy-pad" =: object [ "init" .= [initX, initY], "color" .= color ]
+
         DropDownList init texts -> "drop-down-list" =: object [ "init" .= init, "texts" .= texts ]
         TextInput maybeInit color textLength -> "text-input" =: (object $ catMaybes [fmap ("init" .= ) maybeInit, Just $ "color" .= color, fmap ("text-length" .= ) textLength])
         FileInput maybeInit color text -> "file-input" =: (object $ catMaybes [fmap ("init" .= ) maybeInit, Just $ "color" .= color, Just $ "text" .= text  ])    
@@ -234,3 +239,7 @@ instance ToJSON Sym where
             fromPair (a, b) = [a, b]
 
 -----------------------------------------------------------------
+
+writeJson :: String -> Root -> IO ()
+writeJson filename root = do
+    LB.writeFile "test.json" $ encode root
