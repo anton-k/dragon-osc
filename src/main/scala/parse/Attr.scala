@@ -83,7 +83,7 @@ object Attr {
     def size = attr[Option[(Int,Int)]](Names.size, readSize, None)
     def size1 = attr[Int](Names.size, readInt, Defaults.size1)
     def allowDeselect = attr[Boolean](Names.allowDeselect, readBoolean, Defaults.allowDeselect)
-    def texts = attr[List[String]](Names.text, readStringList, Nil)
+    def texts = attr[List[String]](Names.texts, readStringList, Nil)
     def initOptionString = attr[Option[String]](Names.init, readOptionString, None)
     def textLength = attr[Int](Names.textLength, readInt, Defaults.textLength)
     def initRange = attr[(Float,Float)](Names.init, readFloat2, Defaults.range)

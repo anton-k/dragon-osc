@@ -33,10 +33,10 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     }
    
     def send(msg: OscMsg) {
+        msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
         if (debugMode) {
             msg.echo
-        }
-        msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
+        }        
         clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
     }
 
