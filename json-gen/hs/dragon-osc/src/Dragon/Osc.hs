@@ -66,9 +66,14 @@ data Send = Send
     , onValueOff :: [(String, [Msg])] }
 
 data Msg = Msg 
-    { msgClient :: String
-    , msgPath   :: String
-    , msgArgs   :: Args }
+        { msgClient :: String
+        , msgPath   :: String
+        , msgArgs   :: Args }
+    | DelayedMsg
+        { msgClient :: String
+        , msgPath   :: String
+        , msgArgs   :: Args
+        , msgDelay  :: Float }
 
 type Args = [Arg]
 
@@ -193,6 +198,9 @@ instance ToJSON Send where
 
 instance ToJSON Msg where
     toJSON (Msg client path args) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args]
+
+    toJSON (DelayedMsg client path args delay) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args, "delay" .= delay]
+
 
 instance ToJSON Arg where
     toJSON a = case a of

@@ -59,7 +59,7 @@ class HotKeyTest extends FunSuite {
 
     test ("event 1") {
         checkEvent("{ key: a, send: [ msg: { path: /amp, args: [true]}] }",
-            Some(HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None)))
+            Some(HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))), None)), Map()), None)))
     }
 
 
@@ -80,8 +80,8 @@ class HotKeyTest extends FunSuite {
                         path: /cps
                         args: [false]
         """, Some(Keys(List(
-                HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))))), Map()), None ),
-                HotKeyEvent(HotKey(Set.empty, Key.B), Send(List(Msg(Defaults.client, "/cps", List(PrimArg(PrimBoolean(false))))), Map()), None )
+                HotKeyEvent(HotKey(Set.empty, Key.A), Send(List(Msg(Defaults.client, "/amp", List(PrimArg(PrimBoolean(true))), None)), Map()), None ),
+                HotKeyEvent(HotKey(Set.empty, Key.B), Send(List(Msg(Defaults.client, "/cps", List(PrimArg(PrimBoolean(false))), None)), Map()), None )
             ))))
     }
 
