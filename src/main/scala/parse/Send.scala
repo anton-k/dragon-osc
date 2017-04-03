@@ -9,7 +9,7 @@ import dragon.osc.parse.util._
 import dragon.osc.parse.widget._
 
 case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map(), onValueOff: Map[String, List[Msg]] = Map())
-case class Msg(client: String, address: String, args: List[Arg], delay: Option[Float])
+case class Msg(client: String, address: String, args: List[Arg], delay: Option[Float] = None)
 
 trait Arg
 case class PrimArg(value: Prim) extends Arg
