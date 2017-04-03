@@ -75,6 +75,7 @@ data Msg = Msg
         , msgPath   :: String
         , msgArgs   :: Args }
 
+
 type Args = [Arg]
 
 data Arg = ArgString String | ArgFloat Float | ArgBool Bool | ArgInt Int | Arg Int | Mem String
@@ -198,9 +199,7 @@ instance ToJSON Send where
 
 instance ToJSON Msg where
     toJSON (Msg client path args) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args]
-
     toJSON (DelayedMsg delay client path args) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args, "delay" .= delay]
-
 
 instance ToJSON Arg where
     toJSON a = case a of
