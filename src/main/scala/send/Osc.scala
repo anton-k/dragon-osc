@@ -19,7 +19,7 @@ case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClien
         else clients.get(name).getOrElse(defaultClient)
 }
 
-case class OscMsg(client: String, address: String, args: List[Object]) {
+case class OscMsg(client: String, address: String, args: List[Object], delay: Option[Float]) {
     def echo {
         val argStr = args.map(_.toString).mkString(" ")
         println(s"${client} ${address} : ${argStr}")
@@ -36,6 +36,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         if (debugMode) {
             msg.echo
         }
+        msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
         clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
     }
 

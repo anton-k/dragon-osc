@@ -160,6 +160,11 @@ object Attr {
         case _ => None
     }
 
+    def readOptionFloat(obj: Lang) = readFloat(obj) match {
+        case Some(x) => Some(Some(x))
+        case None => None
+    }
+
     def readMultiToggleInit(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readRangeInt).map(_.toSet)
         case _ => None

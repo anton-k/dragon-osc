@@ -12,7 +12,7 @@ import dragon.osc.parse.hotkey._
 
 private object Util {
     def convertMsg(st: St)(input: List[Object], msg: Msg): Option[OscMsg] = 
-        ParseUtil.optionMapM(msg.args)(primArg(st)(input)).map(args => OscMsg(msg.client, msg.address, args))
+        ParseUtil.optionMapM(msg.args)(primArg(st)(input)).map(args => OscMsg(msg.client, msg.address, args, msg.delay))
 
     def primArg(st: St)(input: List[Object])(arg: Arg): Option[Object] = arg match {
         case PrimArg(PrimInt(x)) => Some(x.asInstanceOf[Object])

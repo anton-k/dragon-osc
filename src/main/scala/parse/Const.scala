@@ -74,6 +74,7 @@ object Names {
     val orient = "orient"
     val sizeList = "sizes"
     val doubleCheck = "double-check"
+    val delay = "delay"    
 
     object Error {
         val failedToParse = "File parsing failed. Check if the file exists and if it is in yaml format."

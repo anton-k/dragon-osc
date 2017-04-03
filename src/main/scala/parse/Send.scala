@@ -9,7 +9,7 @@ import dragon.osc.parse.util._
 import dragon.osc.parse.widget._
 
 case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map(), onValueOff: Map[String, List[Msg]] = Map())
-case class Msg(client: String, address: String, args: List[Arg])
+case class Msg(client: String, address: String, args: List[Arg], delay: Option[Float])
 
 trait Arg
 case class PrimArg(value: Prim) extends Arg
@@ -36,9 +36,11 @@ object Send {
         case _ => None
     }
 
-    def readMsg(obj: Lang): Option[Msg] = obj.getKey(Names.msg).map(Attr.lift3(Msg, Attr.client, Attr.path, args).run)
+    def readMsg(obj: Lang): Option[Msg] = obj.getKey(Names.msg).map(Attr.lift4(Msg, Attr.client, Attr.path, args, delay).run)
 
     def args = Attr.attr[List[Arg]](Names.args, readArgs, List())
+
+    def delay = Attr.attr[Option[Float]](Names.delay, Attr.readOptionFloat, None)
 
     def readArgs(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readSingleArg)
