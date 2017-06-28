@@ -9,7 +9,16 @@ import dragon.osc.parse.util._
 import dragon.osc.parse.widget._
 
 case class Send(default: List[Msg], onValue: Map[String, List[Msg]] = Map(), onValueOff: Map[String, List[Msg]] = Map())
-case class Msg(client: String, address: String, args: List[Arg], delay: Option[Float] = None)
+case class Msg(client: Client, address: String, args: List[Arg], delay: Option[Float] = None)
+
+trait Client {
+    def isPort = this match {
+        case NameClient(_) => false
+        case PortClient(_) => true
+    }
+}
+case class NameClient(name: String) extends Client
+case class PortClient(port: Int) extends Client
 
 trait Arg
 case class PrimArg(value: Prim) extends Arg
@@ -50,14 +59,14 @@ object Send {
 
     def readSingleArg(obj: Lang): Option[Arg] = obj match {
         case PrimSym(PrimString(str)) if isRef(str) => getArgRef(str).orElse(getMemRef(str))
-        case PrimSym(prim) => Some(PrimArg(prim))        
+        case PrimSym(prim) => Some(PrimArg(prim))
         case _ => None
     }
 
     def isRef(str: String) = str.startsWith("$")
     def getArgRef(str: String) = Try { str.drop(1).toInt }.toOption.map(ArgRef)
     def getMemRef(str: String) = Some(MemRef(str.drop(1)))
-        
+
     def readMsgList(obj: Lang): Option[List[Msg]] = obj match {
         case ListSym(xs) => Some(xs.map(readMsg).flatten)
         case _ => None
@@ -90,7 +99,7 @@ object Send {
         }
 
         def insertInMsgList(adds: List[(String, Lang)], elem: Lang) = elem match {
-            case ListSym(msgs) => ListSym(msgs.map(insertInMsg(adds)))                
+            case ListSym(msgs) => ListSym(msgs.map(insertInMsg(adds)))
             case _ => elem
         }
 
@@ -105,8 +114,8 @@ object Send {
                 msgs match {
                     case MapSym(msgMap) => MapSym(msgMap.map({ case (key, value) => if (key.startsWith(Names.msgCase) || key.startsWith(Names.msgCaseOff) || key.startsWith(Names.default)) (key, insertInMsgList(adds, value)) else (key, value)}))
                     case _ => msgs
-                }                
-            }                        
+                }
+            }
             case _ => obj
         }
     }
@@ -119,7 +128,7 @@ object Send {
             case ListSym(xs) => Some(xs.zipWithIndex.map( { case (elem, ix) => (inCase(ix.toString), fromArg(elem)) } ).toMap)
             case _ => None
         }
-        def booleans(obj: Lang): Option[Map[String,Lang]] = obj match {            
+        def booleans(obj: Lang): Option[Map[String,Lang]] = obj match {
             case ListSym(List(onTrue, onFalse)) => Some(List(inCase(Names.trueStr) -> fromArg(onTrue), inCase(Names.falseStr) -> fromArg(onFalse)).toMap)
             case _ => None
         }
@@ -128,7 +137,7 @@ object Send {
             case _ => None
         }
 
-        def getMsgs(name: String, extract: Lang => Option[Map[String,Lang]], m: Map[String,Lang]) =         
+        def getMsgs(name: String, extract: Lang => Option[Map[String,Lang]], m: Map[String,Lang]) =
             m.get(name).flatMap(extract)
 
         obj match {

@@ -1,12 +1,12 @@
 {-# Language OverloadedStrings #-}
 module Dragon.Osc(
     Size, Float2, Int2,
-    Root(..), Window(..), Ui(..), Param(..), 
-    Keys, KeyEvent(..), 
+    Root(..), Window(..), Ui(..), Param(..),
+    Keys, KeyEvent(..),
     HotKey(..), withModifiers, ctrl, shift, meta, alt,
-    Send(..), Msg(..), Args, Arg(..), 
+    Send(..), Msg(..), Args, Arg(..),
     Page(..), Sym(..), Orient(..),
-    setId, setSend, setMsgs, setMsg, ui, sendMsg, onBool, onBools, 
+    setId, setSend, setMsgs, setMsg, ui, sendMsg, onBool, onBools,
     multiUi,
     writeJson
 ) where
@@ -24,22 +24,22 @@ type Size = (Int, Int)
 type Float2 = (Float, Float)
 type Int2 = (Int, Int)
 
-data Root = Root 
-    { rootWindows :: [Window] 
-    , rootKeys    :: Keys 
+data Root = Root
+    { rootWindows :: [Window]
+    , rootKeys    :: Keys
     , rootInitOsc :: [Msg] }
 
-data Window = Window 
+data Window = Window
     { windowTitle   :: String
-    , windowSize    :: Maybe Size    
+    , windowSize    :: Maybe Size
     , windowContent :: Ui
     , windowKeys    :: Keys }
 
-data Ui = Ui 
+data Ui = Ui
     { uiSym     :: Sym
     , uiParam   :: Param  }
 
-data Param = Param 
+data Param = Param
     { paramId   :: Maybe String
     , paramSend :: Maybe Send }
 
@@ -60,32 +60,36 @@ shift = withModifiers ["shift"]
 meta  = withModifiers ["meta"]
 alt   = withModifiers ["alt"]
 
-data Send = Send 
+data Send = Send
     { sendDefault :: [Msg]
     , onValue :: [(String, [Msg])]
     , onValueOff :: [(String, [Msg])] }
 
-data Msg = Msg 
-        { msgClient :: String
+data Msg = Msg
+        { msgClient :: Client
         , msgPath   :: String
         , msgArgs   :: Args }
     | DelayedMsg
         { msgDelay  :: Float
-        , msgClient :: String
+        , msgClient :: Client
         , msgPath   :: String
         , msgArgs   :: Args }
 
+data Client = NameClient String | PortClient Int
+
+instance IsString Client where
+    fromString = NameClient
 
 type Args = [Arg]
 
 data Arg = ArgString String | ArgFloat Float | ArgBool Bool | ArgInt Int | Arg Int | Mem String
 
-data Page = Page 
+data Page = Page
     { pageTitle :: String
     , pageContent:: Ui
     , pageKeys :: Keys }
 
-data Sym 
+data Sym
     = Hor [Ui]
     | Ver [Ui]
 
@@ -115,7 +119,7 @@ data Sym
     | XYPadRange { initX:: Float2, initY:: Float2, color:: String }
 
     | DropDownList { initInt:: Int, texts:: [String] }
-    | TextInput { initString:: Maybe String, color:: String, textLength :: Maybe Int }    
+    | TextInput { initString:: Maybe String, color:: String, textLength :: Maybe Int }
     | FileInput { initString:: Maybe String, color:: String, text:: String }
     | DoubleCheck { initInt2:: Int2, sizes:: [Int], color1:: String, color2:: String, doubleTexts:: [(String, [String])], orient:: Orient, allowDeselect:: Maybe Bool }
 
@@ -145,7 +149,7 @@ onBool :: Msg -> Msg ->  Ui -> Ui
 onBool on off = onBools [on] [off]
 
 onBools :: [Msg] -> [Msg] ->  Ui -> Ui
-onBools ons offs = setSend (Send [] onVal []) 
+onBools ons offs = setSend (Send [] onVal [])
     where onVal = [("true", ons), ("false", offs)]
 
 -------------------
@@ -181,12 +185,12 @@ instance ToJSON Param where
 (=:) name value = toJSON $ M.fromList [(name, value)]
 
 instance ToJSON Page where
-    toJSON p = "page" =: object ["title" .= pageTitle p, "content" .= pageContent p, "keys" .= pageKeys p ] 
+    toJSON p = "page" =: object ["title" .= pageTitle p, "content" .= pageContent p, "keys" .= pageKeys p ]
 
 instance ToJSON KeyEvent where
     toJSON k = object ["key" .= key k, "send" .=  send k ]
-        where 
-            
+        where
+
 
 instance ToJSON HotKey where
     toJSON (HotKey xs) = case xs of
@@ -201,11 +205,16 @@ instance ToJSON Msg where
     toJSON (Msg client path args) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args]
     toJSON (DelayedMsg delay client path args) = "msg" =: object ["client" .= client, "path" .= path, "args" .= args, "delay" .= delay]
 
+instance ToJSON Client where
+    toJSON x = case x of
+        NameClient a -> toJSON a
+        PortClient a -> toJSON a
+
 instance ToJSON Arg where
     toJSON a = case a of
         ArgString x -> toJSON x
-        ArgFloat x  -> toJSON x 
-        ArgBool x -> toJSON x 
+        ArgFloat x  -> toJSON x
+        ArgBool x -> toJSON x
         ArgInt x -> toJSON x
         Arg n -> toJSON $ '$' : show n
         Mem name -> toJSON $ '$' : name
@@ -239,9 +248,9 @@ instance ToJSON Sym where
 
         DropDownList init texts -> "drop-down-list" =: object [ "init" .= init, "texts" .= texts ]
         TextInput maybeInit color textLength -> "text-input" =: (object $ catMaybes [fmap ("init" .= ) maybeInit, Just $ "color" .= color, fmap ("text-length" .= ) textLength])
-        FileInput maybeInit color text -> "file-input" =: (object $ catMaybes [fmap ("init" .= ) maybeInit, Just $ "color" .= color, Just $ "text" .= text  ])    
+        FileInput maybeInit color text -> "file-input" =: (object $ catMaybes [fmap ("init" .= ) maybeInit, Just $ "color" .= color, Just $ "text" .= text  ])
         DoubleCheck initInt2 sizes color1 color2 doubleTexts orient allowDeselect -> "double-check" =: object [ "init" .= [fst initInt2, snd initInt2], "sizes" .= sizes, "color1" .= color1, "color2" .= color2, "texts" .= doubleTexts, "orient" .= orient ]
-        where 
+        where
             floatVal name init color (rangeMin, rangeMax) = name =: object [ "init" .= init, "color" .= color, "range" .= [rangeMin, rangeMax] ]
             fromPair (a, b) = [a, b]
 

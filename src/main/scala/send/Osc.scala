@@ -6,20 +6,21 @@ import scala.swing.audio.ui.{SetWidget, SetColor, GetWidget, SetText, SetTextLis
 import scala.audio.osc._
 import dragon.osc.readargs._
 import dragon.osc.color._
+import dragon.osc.parse.send._
 
-case class OscClientPool(clients: Map[String,OscClient], defaultClient: OscClient, selfClient: OscClient) {
+case class OscClientPool(clients: Map[Client,OscClient], defaultClient: OscClient, selfClient: OscClient) {
     def close {
         clients.values.foreach(_.close)
         defaultClient.close
         selfClient.close
     }
 
-    def getClient(name: String) = 
-        if (name == "self") selfClient
+    def getClient(name: Client) =
+        if (name == NameClient("self")) selfClient
         else clients.get(name).getOrElse(defaultClient)
 }
 
-case class OscMsg(client: String, address: String, args: List[Object], delay: Option[Float]) {
+case class OscMsg(client: Client, address: String, args: List[Object], delay: Option[Float]) {
     def echo {
         val argStr = args.map(_.toString).mkString(" ")
         println(s"${client} ${address} : ${argStr}")
@@ -28,15 +29,15 @@ case class OscMsg(client: String, address: String, args: List[Object], delay: Op
 
 case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     def close {
-        clients.close        
+        clients.close
         server.close
     }
-   
+
     def send(msg: OscMsg) {
         msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
         if (debugMode) {
             msg.echo
-        }        
+        }
         clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
     }
 
@@ -56,7 +57,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
                 if (file.exists) {
                     widget.set(file, fireCallback)
                 }
-            })            
+            })
         }
         go("", true)
         go("/cold", false)
@@ -76,7 +77,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
 
     def addToggleListener[A <: SetWidget[Boolean] with GetWidget[Boolean]](id: String, widget: A)(implicit codec: MessageCodec[Boolean]) {
         def go(prefix: String, isFireCallback: Boolean) {
-            server.listen[Unit](s"${prefix}/${id}/toggle"){ msg => 
+            server.listen[Unit](s"${prefix}/${id}/toggle"){ msg =>
                 val current = widget.get
                 widget.set(!current, isFireCallback)
             }
@@ -85,7 +86,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         go("", true)
         go("/cold", false)
         addListener(id, widget)(codec)
-    }   
+    }
 
     def addFloatListener[A <: SetWidget[Float] with GetWidget[Float]](id: String, widget: A)(implicit codec: MessageCodec[Float]) {
         def go(prefix: String, isFireCallback: Boolean) {
@@ -107,7 +108,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
-    }    
+    }
 
     type Float2 = (Float, Float)
 
@@ -120,7 +121,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
-    } 
+    }
 
     def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {
         def go(prefix: String, isFireCallback: Boolean) {
@@ -132,18 +133,18 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         go("", true)
         go("/cold", false)
         addListener(id, widget)
-    }  
+    }
 
     def addMultiToggleListener(id: String, widget: MultiToggle)(implicit codec: MessageCodec[(Int, Int)], codec2: MessageCodec[((Int, Int), Boolean)]) {
          def go(prefix: String, isFireCallback: Boolean) {
-            server.listen[(Int,Int)](s"${prefix}/${id}/multi-toggle"){ msg => 
+            server.listen[(Int,Int)](s"${prefix}/${id}/multi-toggle"){ msg =>
                 val current = widget.getAt(msg)
-                widget.set((msg, !current), isFireCallback)                
+                widget.set((msg, !current), isFireCallback)
             }
         }
 
         go("", true)
-        go("/cold", false) 
+        go("/cold", false)
         addListener[((Int, Int), Boolean)](id, widget)
     }
 
@@ -180,18 +181,23 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         setText1
         setText2
     }
-
 }
 
 object Osc {
-    def apply(args: Args): Osc = {
+    def apply(args: Args, clients: List[Client]): Osc = {
         val selfClient = OscClient(args.outPort)
-        val defaultClient = selfClient     
-        Thread.sleep(10)   
+        val defaultClient = selfClient
+        Thread.sleep(10)
         println("server GET")
         val oscServer = OscServer.init(args.outPort).get
-        Thread.sleep(10)           
-        val clientPool = OscClientPool(args.inPort.map({ case (k, v) => (k, OscClient(v)) }), defaultClient, selfClient)
+        Thread.sleep(10)
+        val clientNameMap: Map[Client, OscClient] = args.inPort.map({ case (k, v) => (NameClient(k), OscClient(v)) })
+        val clientPortMap = clients.flatMap{ x => x match {
+            case NameClient(_) => Nil
+            case PortClient(n) => List(PortClient(n) -> OscClient(n))
+        }}
+        val clientMap = clientNameMap ++ clientPortMap
+        val clientPool = OscClientPool(clientMap, defaultClient, selfClient)
         Osc(clientPool, oscServer, args.debugMode)
     }
 }

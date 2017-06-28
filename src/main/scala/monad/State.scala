@@ -39,7 +39,7 @@ trait State[S,+A] { self =>
     def map[B](f: A => B): State[S,B] = new State[S,B] {
         def run(st: S) = self.run(st) match {
             case (a, s) => (f(a), s)
-        }        
+        }
     }
 
     def flatMap[B](f: A => State[S,B]): State[S,B] = new State[S,B] {

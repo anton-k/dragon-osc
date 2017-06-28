@@ -11,7 +11,7 @@ import dragon.osc.parse.util.{Util => ParseUtil}
 import dragon.osc.parse.hotkey._
 
 private object Util {
-    def convertMsg(st: St)(input: List[Object], msg: Msg): Option[OscMsg] = 
+    def convertMsg(st: St)(input: List[Object], msg: Msg): Option[OscMsg] =
         ParseUtil.optionMapM(msg.args)(primArg(st)(input)).map(args => OscMsg(msg.client, msg.address, args, msg.delay))
 
     def primArg(st: St)(input: List[Object])(arg: Arg): Option[Object] = arg match {
@@ -22,21 +22,21 @@ private object Util {
         case MemRef(id) => st.memory.get(id).map(_.asInstanceOf[Object])
         case ArgRef(id) => if (id < input.length) Some(input(id)) else None
     }
-               
 
-    def msgList(input: List[Object], send: Send): List[Msg] = 
+
+    def msgList(input: List[Object], send: Send): List[Msg] =
         send.onValue.get(getStringRepr(input)).getOrElse(send.default)
 
-    def msgOffList(input: List[Object], send: Send): List[Msg] = 
+    def msgOffList(input: List[Object], send: Send): List[Msg] =
         send.onValueOff.get(getStringRepr(input)).getOrElse(Nil)
 
-    def getStringRepr(input: List[Object]) = 
+    def getStringRepr(input: List[Object]) =
         input.map(_.toString).mkString(" ")
 }
 
 case class St(osc: Osc, memory: Memory) {
     def close {
-        osc.close        
+        osc.close
     }
 
     def compileSend(send: Send)(oscInput: List[Object], caseArgInput: List[Object]) {
@@ -53,10 +53,10 @@ case class St(osc: Osc, memory: Memory) {
         (select _, deselect _)
     }
 
-    def compileSendNoInput(send: Send): List[OscMsg] = 
+    def compileSendNoInput(send: Send): List[OscMsg] =
         Util.msgList(Nil, send).map(msg => Util.convertMsg(this)(Nil, msg)).flatten
 
-    def getKeyMap(keys: Keys) = 
+    def getKeyMap(keys: Keys) =
         keys.keyEvents.map(event => (event.key -> this.compileSendNoInput(event.send))).toMap
 
 
@@ -67,7 +67,7 @@ case class St(osc: Osc, memory: Memory) {
 }
 
 object St {
-    def init(args: Args) = St(Osc(args), Memory.init)   
+    def init(args: Args, clients: List[Client]) = St(Osc(args, clients), Memory.init)
 }
 
 case class Memory(var memory: Map[String, Object]) {
@@ -84,7 +84,7 @@ object Memory {
 
 
 object WindowKeys {
-    def fromRootKeys(st: St, keys: Keys) =         
+    def fromRootKeys(st: St, keys: Keys) =
         WindowKeys(st.getKeyMap(keys), Map())
 }
 

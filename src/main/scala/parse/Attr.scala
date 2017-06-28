@@ -6,6 +6,7 @@ import dragon.osc.parse.const._
 import dragon.osc.parse.syntax._
 import dragon.osc.parse.util._
 import dragon.osc.parse.ui._
+import dragon.osc.parse.send._
 
 trait Attr[A] { self =>
     def run(obj: Lang): A
@@ -15,7 +16,7 @@ trait Attr[A] { self =>
     }
 }
 
-object Attr {    
+object Attr {
     // generic functions
 
     def pure[A](a: A): Attr[A] = new Attr[A] {
@@ -35,7 +36,7 @@ object Attr {
     }
 
     def lift4[A,B,C,D,E](f: (A,B,C,D) => E, ma: Attr[A], mb: Attr[B], mc: Attr[C], md: Attr[D]): Attr[E] = {
-        ap(lift3[A,B,C,D=>E]((a, b, c) => (d: D) => f(a,b,c,d), ma, mb, mc), md)   
+        ap(lift3[A,B,C,D=>E]((a, b, c) => (d: D) => f(a,b,c,d), ma, mb, mc), md)
     }
 
     def lift5[A,B,C,D,E,F](f: (A,B,C,D,E) => F, ma: Attr[A], mb: Attr[B], mc: Attr[C], md: Attr[D], me: Attr[E]): Attr[F] = {
@@ -54,7 +55,7 @@ object Attr {
         def run(obj: Lang) = (obj match {
             case MapSym(m) => m.get(name).flatMap(extract)
             case _ => None
-        }).getOrElse(default)        
+        }).getOrElse(default)
     }
 
     def optAttr[A](name: String, extract: Lang => Option[A]) = attr[Option[A]](name, x => extract(x).map(a => Some(a)), None)
@@ -77,7 +78,7 @@ object Attr {
     def rangeInt = attr[(Int, Int)](Names.range, readRangeInt, Defaults.rangeInt)
     def rangeFloat = attr[(Float, Float)](Names.range, readRangeFloat, Defaults.range)
     def id = attr[Option[String]](Names.id, x => Some(readString(x)), None)
-    def client = attr[String](Names.client, readString, Defaults.client)
+    def client = attr[Client](Names.client, readClient, NameClient(Defaults.client))
     def path = attr[String](Names.path, readString, Defaults.path)
     def title = attr[String](Names.title, readString, Defaults.string)
     def size = attr[Option[(Int,Int)]](Names.size, readSize, None)
@@ -101,6 +102,8 @@ object Attr {
         else None
     }))
 
+
+
     //---------------------------------------------------------
     // field readers
 
@@ -113,12 +116,12 @@ object Attr {
     def readString(obj: Lang) = obj match {
         case PrimSym(PrimString(x)) => Some(x)
         case _ => None
-    }    
+    }
 
     def readBoolean(obj: Lang) = obj match {
         case PrimSym(PrimBoolean(x)) => Some(x)
         case _ => None
-    }    
+    }
 
     def readInt(obj: Lang) = obj match {
         case PrimSym(PrimInt(x)) => Some(x)
@@ -129,7 +132,7 @@ object Attr {
         case ListSym(List(PrimSym(PrimInt(min)), PrimSym(PrimInt(max)))) => Some((min, max))
         case _ => None
     }
-    
+
     def readRangeFloat(obj: Lang) = obj match {
         case ListSym(List(s1, s2)) => for { min <- readFloat(s1); max <- readFloat(s2) } yield (min, max)
         case _ => None
@@ -143,7 +146,7 @@ object Attr {
     def readIntList(obj: Lang) = obj match {
         case ListSym(xs) => Util.optionMapM(xs)(readInt)
         case _ => None
-    }    
+    }
 
     def readFloat2(obj: Lang) = obj match {
         case ListSym(List(s1, s2)) => for { x <- readFloat(s1); y <- readFloat(s2) } yield (x, y)
@@ -153,7 +156,7 @@ object Attr {
     def readInt2(obj: Lang) = obj match {
         case ListSym(List(PrimSym(PrimInt(x)), PrimSym(PrimInt(y)))) => Some((x, y))
         case _ => None
-    }    
+    }
 
     def readOptionString(obj: Lang) = obj match {
         case PrimSym(PrimString(x)) => if (x.isEmpty) None else Some(Some(x))
@@ -186,4 +189,10 @@ object Attr {
         case ListSym(List(PrimSym(PrimString(name)), subnames)) => readStringList(subnames).map(xs => (name, xs))
         case _ => None
     }
-} 
+
+    def readClient(obj: Lang) = obj match {
+        case PrimSym(PrimString(x)) => Some(NameClient(x))
+        case PrimSym(PrimInt(x)) => Some(PortClient(x))
+        case _  => None
+    }
+}

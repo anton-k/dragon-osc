@@ -10,7 +10,7 @@ import dragon.osc.parse.widget._
 import dragon.osc.parse.hotkey._
 
 case class Root(windows: List[Window], hotKeys: Keys, initMessages: List[Msg])
-case class Window(title: String, size: Option[(Int, Int)], content: Ui, hotKeys: Keys) 
+case class Window(title: String, size: Option[(Int, Int)], content: Ui, hotKeys: Keys)
 
 case class Ui(sym: Sym, param: Param = Param(None, None))
 case class Param(id: Option[String], osc: Option[Send])
@@ -61,12 +61,12 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], color1: String, color
 
 // -----------------------------------------
 
-object Read {    
+object Read {
     import Attr._
 
     def emptyUi = Ui(Space, Param(None, None))
 
-    def fromSym(sym: Widget[Sym]): Widget[Ui] = 
+    def fromSym(sym: Widget[Sym]): Widget[Ui] =
         Widget.lift2(Ui, sym, param)
 
     def dial    = Widget.prim(Names.dial,    lift3(Dial,   initFloat, color, rangeFloat))
@@ -75,7 +75,7 @@ object Read {
     def toggle  = Widget.prim(Names.toggle,  lift3(Toggle, initBoolean, color, text))
     def intDial = Widget.prim(Names.intDial, lift3(IntDial, initInt, color, rangeInt))
     def label   = Widget.prim(Names.label,   lift2(Label,  color, text))
-    def button  = Widget.prim(Names.button,  lift2(Button, color, text))    
+    def button  = Widget.prim(Names.button,  lift2(Button, color, text))
     def hcheck  = Widget.prim(Names.hcheck,  lift5(HCheck, initInt, size1, color, texts, allowDeselect))
     def vcheck  = Widget.prim(Names.vcheck,  lift5(VCheck, initInt, size1, color, texts, allowDeselect))
     def xyPad   = Widget.prim(Names.xyPad,   lift2(XYPad, initFloat2, color))
@@ -100,16 +100,16 @@ object Read {
 
     def tabContent: Attr[Option[Ui]] = attr(Names.content, obj => ui.run(obj).map(x => Some(x)), None)
     def page: Widget[Option[Page]] = Widget.prim(Names.page, lift3((t: String, optCont: Option[Ui], keys: Keys) => optCont.map(cont => Page(t, cont, keys)), title, tabContent, HotKey.readAttr))
-    def tabs = Widget.listBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))  
+    def tabs = Widget.listBy[Tabs, Option[Page]](page)(Names.tabs, xs => Tabs(xs.flatten))
 
-    def widgets: Stream[Widget[Sym]] = 
-        dial #:: 
-        hfader #:: 
-        vfader #:: 
-        toggle #:: 
-        intDial #::         
+    def widgets: Stream[Widget[Sym]] =
+        dial #::
+        hfader #::
+        vfader #::
+        toggle #::
+        intDial #::
         label #::
-        button #:: 
+        button #::
         hcheck #::
         vcheck #::
         xyPad #::
@@ -123,22 +123,70 @@ object Read {
         multiToggle #::
         fileInput #::
         doubleCheck #::
-        hor #:: 
-        ver #:: 
-        tabs #:: 
+        hor #::
+        ver #::
+        tabs #::
         Stream.empty[Widget[Sym]]
 
-    def list[A](key: String, mk: List[Ui] => A) = Widget.listBy(ui)(key, mk)        
+    def list[A](key: String, mk: List[Ui] => A) = Widget.listBy(ui)(key, mk)
 
-    def param: Widget[Param] = {        
+    def param: Widget[Param] = {
         Widget.lift2(Param, Widget.fromOptionAttr(id), Widget.fromOptionAttr(Send.read))
-    } 
+    }
 
     def ui: Widget[Ui] = Widget.any(widgets.map(fromSym))
 
     def window: Widget[Window] = Widget.prim(Names.window, lift4(Window, title, size, windowContent, HotKey.readAttr))
 
     def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
-    
+
     def root: Widget[Root] = Widget.lift3(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read, Send.initMessages)
 }
+
+object GetOsc {
+
+    def getOsc(root: Root): List[Client] =
+        List( root.windows.flatMap(x => getOsc(x))
+            , getOsc(root.hotKeys)
+            , root.initMessages.flatMap(x => getOsc(x))).flatten
+
+    def getOsc(win: Window): List[Client] =
+        List( getOsc(win.content)
+            , getOsc(win.hotKeys)).flatten
+
+    def getOsc(keys: Keys): List[Client] =
+        keys.keyEvents.flatMap(x => getOsc(x))
+
+    def getOsc(msg: Msg): List[Client] = List(msg.client)
+
+    def getOsc(ui: Ui): List[Client] =
+        List( getOsc(ui.sym)
+            , getOsc(ui.param)).flatten
+
+    def getOsc(hkey: HotKeyEvent): List[Client] =
+        getOsc(hkey.send)
+
+    def getOsc(send: Send): List[Client] =
+        List( send.default.flatMap(x => getOsc(x))
+            , send.onValue.values.flatten.flatMap(x => getOsc(x))
+            , send.onValueOff.values.flatten.flatMap(x => getOsc(x))
+            ).flatten
+
+    def getOsc(sym: Sym): List[Client] = sym match {
+        case Hor(xs) => xs.flatMap(x => getOsc(x))
+        case Ver(xs) => xs.flatMap(x => getOsc(x))
+        case Tabs(items) => items.flatMap(x => getOsc(x))
+        case _ => Nil
+    }
+
+    def getOsc(page: Page): List[Client] =
+        List( getOsc(page.content)
+            , getOsc(page.hotKeys)).flatten
+
+    def getOsc(param: Param): List[Client] = param.osc match {
+        case None => Nil
+        case Some(a) => getOsc(a)
+    }
+
+}
+

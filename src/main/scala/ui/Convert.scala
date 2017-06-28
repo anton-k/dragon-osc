@@ -19,49 +19,49 @@ case class Root(windows: List[Window]) {
     def show(st: St, args: Args) = windows.foreach(_.show(args, st, st.close))
 }
 
-case class Window(title: String, size: Option[(Int,Int)], content: Component, hotKeys: WindowKeys) { 
+case class Window(title: String, size: Option[(Int,Int)], content: Component, hotKeys: WindowKeys) {
     def show(args: Args, st: St, onClose: => Unit) = {
         val window = this
-        val ui = new MainFrame { self => 
+        val ui = new MainFrame { self =>
             import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
             peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
-            
+
             title = window.title
 
             contents = new BoxPanel(Orientation.Vertical) {
                 listenTo(keys)
 
-                contents += window.content 
+                contents += window.content
                 reactions += {
                     case keyPressed@KeyPressed(_, _, _, _) => hotKeys.act(st, HotKey.fromKeyPress(keyPressed))
                 }
                 focusable = true
                 requestFocus
-            }           
+            }
 
-            window.size.foreach { case (width, height) =>                 
+            window.size.foreach { case (width, height) =>
                 self.minimumSize = new Dimension(width, height)
-            }       
+            }
 
-            override def closeOperation {  
+            override def closeOperation {
                 if (!args.lockClose) {
                     terminate
                 } else {
                     val r = Dialog.showInput(contents.head, s"The app works in lock mode. Type ${Names.unlockPass} to close the app", initial="")
                     r match {
                       case Some(str) => if (str == Names.unlockPass) { terminate }
-                      case None => 
+                      case None =>
                     }
                 }
             }
 
             def terminate {
                 println("Close now")
-                onClose                
-                System.exit(0)            
+                onClose
+                System.exit(0)
             }
         }
-        ui.visible = true        
+        ui.visible = true
     }
 }
 
@@ -70,11 +70,11 @@ case class Context(isHor: Boolean = true) {
     def setVer = this.copy(isHor = false)
 }
 
-object Convert {      
-    def convert(st: St, app: P.Root): Root = 
-        convert(st)(app).eval(Context())        
+object Convert {
+    def convert(st: St, app: P.Root): Root =
+        convert(st)(app).eval(Context())
 
-    def convert(st: St)(app: P.Root): State[Context,Root] = 
+    def convert(st: St)(app: P.Root): State[Context,Root] =
         State.mapM(app.windows)(convertWindow(st, WindowKeys.fromRootKeys(st, app.hotKeys))).map(Root)
 
     def convertWindow(st: St, rootKeys: WindowKeys)(window: P.Window): State[Context,Window] = {
@@ -93,11 +93,11 @@ object Convert {
         val hotKeys = xs.map(page => st.getKeyMap(page.hotKeys)).toArray
         val size = hotKeys.length
 
-        def cbk(n: Int) = {            
+        def cbk(n: Int) = {
             Codec.onInt(st, send)(n)
             if (n < size) {
                 keys.setSpecific(hotKeys(n))
-            }            
+            }
         }
 
         State.mapM(xs)({ page => convertUi(st, keys)(page.content).map(x => (page.title, x))}).map(pages => Util.tabs(pages, cbk))
@@ -124,7 +124,7 @@ object Convert {
             case P.Toggle(init, color, text)        => listen.toggle(ToggleButton(init, palette(color), Some(text))(onBoolean(st, send))).map(listen.text)
             case P.Button(color, text)              => listen.pure[Unit,PushButton](PushButton(palette(color), Some(text))(onButton(st, send))).map(listen.text)
             case P.Label(color, text)               => pure(Text(text, palette(color))).map(listen.text)
-            case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))                     
+            case P.IntDial(init, color, range)      => listen.int(IntDial(init, range, palette(color))(onInt(st, send)))
             case P.HCheck(init, len, color, texts, allowDeselect)  => listen.int(HCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
             case P.VCheck(init, len, color, texts, allowDeselect)  => listen.int(VCheck(init, len, palette(color), texts, allowDeselect)(onIntWithDeselect(init, st, send))).map(listen.textList)
             case P.CircleButton(color)              => listen.pure[Unit,CirclePushButton](CirclePushButton(palette(color))(onButton(st, send)))
@@ -137,11 +137,11 @@ object Convert {
             case P.VFaderRange((initX, initY), color)     => listen.float2(VFaderRange((initX, initY), palette(color))(onFloat2(st, send)))
             case P.XYPadRange(initX, initY, color) => listen.float4(XYPadRange(initX, initY, palette(color))(onFloat4(st, send)))
 
-            case P.DropDownList(init, texts)        => listen.int(DropDownList(init, texts)(onInt(st, send)))            
+            case P.DropDownList(init, texts)        => listen.int(DropDownList(init, texts)(onInt(st, send)))
             case P.TextInput(init, color, textLength) => listen.string(TextInput(init, palette(color), textLength)(onString(st, send)))
             case P.FileInput(init, color, text) => listen.file(FileInput(init, palette(color), text)(onFile(st, send)))
-            case P.DoubleCheck(init, sizes, color1, color2, texts, orient, allowDeselect) => listen.doubleCheck(DoubleCheck(init, sizes, palette(color1), palette(color2), texts, 
+            case P.DoubleCheck(init, sizes, color1, color2, texts, orient, allowDeselect) => listen.doubleCheck(DoubleCheck(init, sizes, palette(color1), palette(color2), texts,
                         DoubleCheck.Orient(orient.isFirst, orient.isFirstHor, orient.isSecondHor), allowDeselect)(onInt2WithDeselect(init, st, send)))
         }
-    }       
+    }
 }

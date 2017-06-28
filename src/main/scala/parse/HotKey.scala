@@ -23,7 +23,7 @@ object HotKey {
 
     def read: Widget[Keys] = new Widget[Keys] {
         def run(obj: Lang) = Read.hotKeyEvents.map(Keys).run(obj) orElse Some(Keys(Nil))
-    } 
+    }
 
     def readAttr: Attr[Keys] = new Attr[Keys] {
         def run(obj: Lang) = read.run(obj).getOrElse(Keys(Nil))
@@ -31,8 +31,8 @@ object HotKey {
 
     def fromKeyPress(keyPress: KeyPressed): HotKey = HotKey(getModifiers(keyPress.peer), keyPress.key)
 
-    def getModifiers(evt: JavaKeyEvent) = 
-        List(   
+    def getModifiers(evt: JavaKeyEvent) =
+        List(
             if (evt.isControlDown) List(Key.Control) else Nil,
             if (evt.isAltDown) List(Key.Alt) else Nil,
             if (evt.isMetaDown) List(Key.Windows) else Nil,
@@ -50,9 +50,9 @@ object HotKey {
 
             Widget.fromAttr(Attr.lift3(mk, key, Send.read, guard))
         }
-            
 
-        def key: Attr[Option[HotKey]] = Attr.optAttr(Names.key, readKey)    
+
+        def key: Attr[Option[HotKey]] = Attr.optAttr(Names.key, readKey)
         def guard: Attr[Option[KeyGuard]]    = Attr.optAttr(Names.keyGuard, readKeyGuard)
 
         def readKey(obj: Lang): Option[HotKey] = {
@@ -63,7 +63,7 @@ object HotKey {
 
             def fromList(keys: List[Key.Value]) = {
                 val (mods, singles) = keys.partition(isMod)
-                if (singles.isEmpty) 
+                if (singles.isEmpty)
                     None
                 else
                     Some(HotKey(mods.toSet, singles.head))
@@ -75,7 +75,7 @@ object HotKey {
                 case Key.Control => true
                 case Key.Windows => true
                 case _ => false
-            }                            
+            }
 
             obj match {
                 case ListSym(xs) => Util.optionMapM(xs)(readSingleKey).flatMap(fromList)
@@ -89,6 +89,6 @@ object HotKey {
                 case _ => None
             }
             case _ => None
-        }    
+        }
     }
 }
