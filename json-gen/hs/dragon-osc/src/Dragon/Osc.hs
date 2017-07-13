@@ -4,7 +4,7 @@ module Dragon.Osc(
     Root(..), Window(..), Ui(..), Param(..),
     Keys, KeyEvent(..),
     HotKey(..), withModifiers, ctrl, shift, meta, alt,
-    Send(..), Msg(..), Args, Arg(..),
+    Send(..), Msg(..), Client(..), Args, Arg(..),
     Page(..), Sym(..), Orient(..),
     setId, setSend, setMsgs, setMsg, ui, sendMsg, onBool, onBools,
     multiUi,
@@ -258,4 +258,4 @@ instance ToJSON Sym where
 
 writeJson :: String -> Root -> IO ()
 writeJson filename root = do
-    LB.writeFile "test.json" $ encode root
+    LB.writeFile filename $ encode root

@@ -10,7 +10,7 @@ import dragon.osc.parse.hotkey._
 class PrimWidgets extends FunSuite {
     import Read._
 
-    def check[A](str: String, w: Widget[A], res: Option[A]) = 
+    def check[A](str: String, w: Widget[A], res: Option[A]) =
         assert(Lang.read(str).flatMap(x => w.run(x)) == res)
 
     test("dial") {
@@ -29,7 +29,7 @@ class PrimWidgets extends FunSuite {
     }
 
     test("int-dial") {
-        check("int-dial: { color: olive, init: 5, range: [0, 20] }", intDial, 
+        check("int-dial: { color: olive, init: 5, range: [0, 20] }", intDial,
             Some(IntDial(5, "olive", (0, 20))))
     }
 
@@ -52,7 +52,7 @@ class PrimWidgets extends FunSuite {
 class ParseGenericParams extends FunSuite {
     import Read._
 
-    def check[A](str: String, w: Widget[Sym], res: Option[Ui]) = 
+    def check[A](str: String, w: Widget[Sym], res: Option[Ui]) =
         assert(Lang.read(str).flatMap(x => fromSym(w).run(x)) == res)
 
 
@@ -68,7 +68,7 @@ class ParseGenericParams extends FunSuite {
 class PrimUi extends FunSuite {
     import Read._
 
-    def check[A](str: String, res: Option[Ui]) = 
+    def check[A](str: String, res: Option[Ui]) =
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
     val d = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
@@ -86,18 +86,18 @@ class PrimUi extends FunSuite {
 class CompoundWidgets extends FunSuite {
     import Read._
 
-    def check[A](str: String, w: Widget[A], res: Option[A]) = 
+    def check[A](str: String, w: Widget[A], res: Option[A]) =
         assert(Lang.read(str).flatMap(x => w.run(x)) == res)
 
     val p = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
 
     test("hor") {
-        check("hor: [dial: {}, dial: {}, dial: {}]", hor, 
+        check("hor: [dial: {}, dial: {}, dial: {}]", hor,
             Some(Hor(List(p, p, p))))
     }
 
     test("ver") {
-        check("ver: [dial: {}, dial: {}, dial: {}]", ver, 
+        check("ver: [dial: {}, dial: {}, dial: {}]", ver,
             Some(Ver(List(p, p, p))))
     }
 }
@@ -106,18 +106,18 @@ class UiCompoundWidgets extends FunSuite {
     import Read._
     val emptyKeys = Keys(Nil)
 
-    def check(str: String, res: Option[Ui]) = 
+    def check(str: String, res: Option[Ui]) =
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
     val p = Ui(Dial(Defaults.float, Defaults.color, Defaults.range))
 
     test("hor") {
-        check("hor: [dial: {}, dial: {}, dial: {}]",  
+        check("hor: [dial: {}, dial: {}, dial: {}]",
             Some(Ui(Hor(List(p, p, p)))))
     }
 
     test("ver") {
-        check("ver: [dial: {}, dial: {}, dial: {}]",  
+        check("ver: [dial: {}, dial: {}, dial: {}]",
             Some(Ui(Ver(List(p, p, p)))))
     }
 
@@ -126,7 +126,7 @@ class UiCompoundWidgets extends FunSuite {
             Some(Ui(Tabs(List(Page("page1", p, emptyKeys), Page("page2", p, emptyKeys))))))
     }
 
-     def check[A](str: String, widget: Widget[A], res: A) = 
+     def check[A](str: String, widget: Widget[A], res: A) =
         assert(Lang.read(str).flatMap(x => widget.run(x)) == Some(res))
 
     test("window") {
@@ -162,17 +162,17 @@ class ParseParam extends FunSuite {
         case false:
           - msg:
               client: flow
-              path: /off                      
+              path: /off
               args: []
     """
 
     test("check send") {
         checkParam(
-            str, 
-            Param(None, Some(Send(Nil, 
+            str,
+            Param(None, Some(Send(Nil,
                 List(
-                    "true" -> List(Msg("flow", "/on", Nil)), 
-                    "false" -> List(Msg("flow", "/off", Nil))
+                    "true" -> List(Msg(NameClient("flow"), "/on", Nil)),
+                    "false" -> List(Msg(NameClient("flow"), "/off", Nil))
                 ).toMap
             ))) )
     }
@@ -181,12 +181,12 @@ class ParseParam extends FunSuite {
 class UiSend extends FunSuite {
     import Read._
 
-    def check(str: String, res: Option[Ui]) = 
+    def check(str: String, res: Option[Ui]) =
         assert(Lang.read(str).flatMap(x => ui.run(x)) == res)
 
     test("from sym") {
         check(
-            "{ dial: { init: 0.0, color: red}, send: [msg: { client: self, path: /amp, args: []}]}", 
-            Some(Ui(Dial(0, "red", Defaults.range), Param(None, Some(Send(List(Msg("self", "/amp", Nil))))))))
+            "{ dial: { init: 0.0, color: red}, send: [msg: { client: self, path: /amp, args: []}]}",
+            Some(Ui(Dial(0, "red", Defaults.range), Param(None, Some(Send(List(Msg(NameClient("self"), "/amp", Nil))))))))
     }
 }

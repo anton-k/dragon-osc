@@ -8,6 +8,10 @@ import dragon.osc.readargs._
 import dragon.osc.color._
 import dragon.osc.parse.send._
 
+import scala.concurrent.future
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 case class OscClientPool(clients: Map[Client,OscClient], defaultClient: OscClient, selfClient: OscClient) {
     def close {
         clients.values.foreach(_.close)
@@ -34,11 +38,13 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
     }
 
     def send(msg: OscMsg) {
-        msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
-        if (debugMode) {
-            msg.echo
+        Future {
+            msg.delay.foreach { timeSeconds => Thread.sleep((1000 * timeSeconds).toInt) }
+            if (debugMode) {
+                msg.echo
+            }
+            clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
         }
-        clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
     }
 
     def addListener[A](id: String, widget: SetWidget[A])(implicit codec: MessageCodec[A]) {
