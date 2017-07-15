@@ -9,7 +9,7 @@ import dragon.osc.parse.send._
 import dragon.osc.parse.widget._
 import dragon.osc.parse.hotkey._
 
-case class Root(windows: List[Window], hotKeys: Keys, initMessages: List[Msg])
+case class Root(windows: List[Window], hotKeys: Keys, initMessages: List[Msg], terminateMessages: List[Msg])
 case class Window(title: String, size: Option[(Int, Int)], content: Ui, hotKeys: Keys)
 
 case class Ui(sym: Sym, param: Param = Param(None, None))
@@ -140,7 +140,7 @@ object Read {
 
     def windowContent: Attr[Ui] = attr(Names.content, obj => ui.run(obj), emptyUi)
 
-    def root: Widget[Root] = Widget.lift3(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read, Send.initMessages)
+    def root: Widget[Root] = Widget.lift4(Root, Widget.listBy(window)(Names.app, xs => xs), HotKey.read, Send.initMessages, Send.terminateMessages)
 }
 
 object GetOsc {

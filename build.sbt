@@ -3,6 +3,9 @@ mainClass in (Compile,run) := Some("App")
 scalaVersion       := "2.11.0"
 //crossScalaVersions := Seq("2.11.7", "2.10.5")
 
+fork in (run) := true
+trapExit := false
+
 libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-swing" % "2.11.0-M7"
     , "org.yaml" % "snakeyaml" % "1.16"

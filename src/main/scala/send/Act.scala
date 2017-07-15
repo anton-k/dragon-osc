@@ -53,17 +53,21 @@ case class St(osc: Osc, memory: Memory) {
         (select _, deselect _)
     }
 
-    def compileSendNoInput(send: Send): List[OscMsg] =
+    def sendNoInputMsgs(msgs: List[Msg]) =
+        convertNoInput(Send(msgs)).foreach(x => osc.send(x))
+
+    def convertNoInput(send: Send): List[OscMsg] =
         Util.msgList(Nil, send).map(msg => Util.convertMsg(this)(Nil, msg)).flatten
 
     def getKeyMap(keys: Keys) =
-        keys.keyEvents.map(event => (event.key -> this.compileSendNoInput(event.send))).toMap
+        keys.keyEvents.map(event => (event.key -> this.convertNoInput(event.send))).toMap
 
 
     def addListener[A](id: String, widget: SetWidget[A] with SetColor)(implicit codec: MessageCodec[A]) {
         osc.addListener(id, widget)(codec)
         osc.addColorListener(id, widget)
     }
+
 }
 
 object St {

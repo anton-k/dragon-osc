@@ -37,12 +37,15 @@ object Send {
 
     val read: Attr[Option[Send]] = Attr.attr(Names.send, (x: Lang) => Some(readMessages(unwind(x))), None)
 
-    val initMessages: Widget[List[Msg]] = new Widget[List[Msg]] {
-        def run(obj: Lang) = Some(obj.getKey(Names.initSend) match {
+    def boundMessages(keyName: String): Widget[List[Msg]] = new Widget[List[Msg]] {
+        def run(obj: Lang) = Some(obj.getKey(keyName) match {
             case Some(x) => readMsgList(x) getOrElse Nil
             case None    => Nil
         })
     }
+
+    val initMessages: Widget[List[Msg]] = boundMessages(Names.initSend)
+    val terminateMessages: Widget[List[Msg]] = boundMessages(Names.terminateSend)
 
     def readMessages(obj: Lang) = obj match {
         case ListSym(xs) => Some(Send(xs.map(readMsg).flatten))

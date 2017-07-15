@@ -16,7 +16,16 @@ import dragon.osc.send._
 import dragon.osc.readargs._
 
 case class Root(windows: List[Window]) {
-    def show(st: St, args: Args) = windows.foreach(_.show(args, st, st.close))
+    var isTerminated = false
+
+    def runTerminateMessages(st: St, root: P.Root) {
+        if (!isTerminated) {
+            st.sendNoInputMsgs(root.terminateMessages)
+            isTerminated = true
+        }
+    }
+
+    def show(st: St, args: Args, onTerminate: => Unit) = windows.foreach(_.show(args, st, {onTerminate;  st.close}))
 }
 
 case class Window(title: String, size: Option[(Int,Int)], content: Component, hotKeys: WindowKeys) {
@@ -25,6 +34,11 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component, ho
         val ui = new MainFrame { self =>
             import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
             peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+              def uncaughtException(t: Thread, e: Throwable) {
+                println("Uncaught exception in thread: " + t.getName, e)
+              }
+            })
 
             title = window.title
 
@@ -62,6 +76,7 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component, ho
             }
         }
         ui.visible = true
+        // ui.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE )
     }
 }
 

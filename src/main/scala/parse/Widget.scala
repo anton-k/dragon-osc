@@ -5,11 +5,11 @@ import dragon.osc.parse.attr._
 
 object Widget {
     def any[A](xs: Stream[Widget[A]]): Widget[A] = new Widget[A] {
-        private def go(obj: Lang, xs: Stream[Widget[A]]): Option[A] = 
-            if (xs.isEmpty) 
+        private def go(obj: Lang, xs: Stream[Widget[A]]): Option[A] =
+            if (xs.isEmpty)
                 None
             else
-                xs match {            
+                xs match {
                     case a #:: as => a.run(obj) match {
                         case Some(res) => Some(res)
                         case None => go(obj, as)
@@ -33,13 +33,17 @@ object Widget {
 
     def lift3[A,B,C,D](f: (A,B,C) => D, ma: Widget[A], mb: Widget[B], mc: Widget[C]): Widget[D] = {
         ap(lift2[A,B,C=>D]((a, b) => (c: C) => f(a,b, c), ma, mb), mc)
-    }    
+    }
+
+    def lift4[A,B,C,D,E](f: (A,B,C,D) => E, ma: Widget[A], mb: Widget[B], mc: Widget[C], md: Widget[D]): Widget[E] = {
+        ap(lift3[A,B,C,D=>E]((a, b, c) => (d: D) => f(a,b, c, d), ma, mb, mc), md)
+    }
 
     def fromAttr[A](a: Attr[Option[A]]): Widget[A] = new Widget[A] {
         def run(obj: Lang) = a.run(obj)
     }
 
-    def fromOptionAttr[A](a: Attr[Option[A]]) = fromAttr(a).withOption  
+    def fromOptionAttr[A](a: Attr[Option[A]]) = fromAttr(a).withOption
 
     def pure[A](a: A) = new Widget[A] {
         def run(obj: Lang) = Some(a)
@@ -50,11 +54,11 @@ object Widget {
             case ListSym(xs) => Some(mk(xs.map(elem.run).flatten))
             case _ => None
         }
-    }     
+    }
 
     def prim[A](name: String, attr: Attr[A]) = new Widget[A] {
         def run(obj: Lang) = obj.getKey(name).map(attr.run)
-    }    
+    }
 
 }
 
@@ -63,7 +67,7 @@ trait Widget[+A] { self =>
 
     def orElse[B >: A](that: Widget[B]): Widget[B] = new Widget[B] {
         def run(obj: Lang) = self.run(obj) orElse that.run(obj)
-    }   
+    }
 
     def map[B](f: A => B): Widget[B] = new Widget[B] {
         def run(obj: Lang) = self.run(obj).map(f)
