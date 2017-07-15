@@ -11,6 +11,7 @@ import dragon.osc.parse.send._
 import scala.concurrent.future
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import sys.process._
 
 case class OscClientPool(clients: Map[Client,OscClient], defaultClient: OscClient, selfClient: OscClient) {
     def close {
@@ -27,7 +28,7 @@ case class OscClientPool(clients: Map[Client,OscClient], defaultClient: OscClien
 case class OscMsg(client: Client, address: String, args: List[Object], delay: Option[Float]) {
     def echo {
         val argStr = args.map(_.toString).mkString(" ")
-        println(s"${client} ${address} : ${argStr}")
+        println(s"${client.print} ${address} : ${argStr}")
     }
 }
 
@@ -43,7 +44,11 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
             if (debugMode) {
                 msg.echo
             }
-            clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
+            if (msg.client == NameClient("system")) {
+                msg.address !
+            } else {
+                clients.getClient(msg.client).dynamicSend(msg.address, msg.args)
+            }
         }
     }
 
@@ -103,6 +108,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
+        addListener(id, widget)(codec)
     }
 
     def addFloatListener2[A <: SetWidget[(Float,Float)] with GetWidget[(Float,Float)]](id: String, widget: A)(implicit codec: MessageCodec[(Float,Float)]) {
@@ -114,6 +120,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
+        addListener(id, widget)(codec)
     }
 
     type Float2 = (Float, Float)
@@ -127,6 +134,7 @@ case class Osc(clients: OscClientPool, server: OscServer, debugMode: Boolean) {
         }
         go("", true)
         go("/cold", false)
+        addListener(id, widget)(codec)
     }
 
     def addIntListener[A <: SetWidget[Int] with GetWidget[Int]](id: String, widget: A)(implicit codec: MessageCodec[Int]) {

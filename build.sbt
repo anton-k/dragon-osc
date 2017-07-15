@@ -1,6 +1,6 @@
 mainClass in (Compile,run) := Some("App")
 
-//scalaVersion       := "2.10.5"
+scalaVersion       := "2.11.0"
 //crossScalaVersions := Seq("2.11.7", "2.10.5")
 
 libraryDependencies ++= Seq(

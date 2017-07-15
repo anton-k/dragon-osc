@@ -16,6 +16,11 @@ trait Client {
         case NameClient(_) => false
         case PortClient(_) => true
     }
+
+    def print = this match {
+        case NameClient(name) => name
+        case PortClient(n)    => n.toString
+    }
 }
 case class NameClient(name: String) extends Client
 case class PortClient(port: Int) extends Client
