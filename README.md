@@ -5,7 +5,7 @@ The dragon-osc is an app for building custom OSC-controllers.
 We can specify the UI with markup language that is based on YAML or JSON file.
 We specify the layout of the widgets and the interaction of the parts.
 
-The primary goal of the app is to receive and send OSC-messages. 
+The primary goal of the app is to receive and send OSC-messages.
 
 Features:
 
@@ -13,14 +13,14 @@ Features:
 
 * Easy way to make complex layouts with relative sizes.
 
-* We can send OSC-messages to many OSC-clients. 
+* We can send OSC-messages to many OSC-clients.
 
 * We can send many OSC-messages at the same time (based on the single event). It can be
-  useful for setting up a scene for a track. 
+  useful for setting up a scene for a track.
 
 * Dynamic update of the widgets look. The app itself can be changed with specific OSC messages
 
-* We can trigger and control all widgets with code by sending OSC-messages, 
+* We can trigger and control all widgets with code by sending OSC-messages,
   so the app can be used as a visual guide for generative music. Imagine an algorithm
   that sends the control messages to the app and the app sends it to synthesizers.
 
@@ -32,7 +32,7 @@ Features:
 
 ### Installation
 
-To run the app we need git and sbt. Git is for cloning the repo and sbt 
+To run the app we need git and sbt. Git is for cloning the repo and sbt
 is for building everything. The app is made with Scala. The sbt is a standard tool to make Scala applications and libraries.
 
 Clone the repo:
@@ -72,7 +72,7 @@ The jar-file will be written in the directory target/scala-2.*
 
 ### Hello world!
 
-Let's create a simple UI program and invoke it with our program. 
+Let's create a simple UI program and invoke it with our program.
 
 ~~~yaml
 main:
@@ -92,8 +92,8 @@ Let's save the file to hello.yaml load the project with `sbt` and invoke the app
 ~~~
 
 The flag `-i` says where is the config file for the app.
-Every config-file should has the root element called `main`. 
-Then within the `main` we list the windows of the app. 
+Every config-file should has the root element called `main`.
+Then within the `main` we list the windows of the app.
 
 Window has the attributes: `title` (string), `size` (pair encoded as list), `content` (all ui elements).
 We have defined a single UI-element that only shows the string. The widget is a `label`.
@@ -101,15 +101,15 @@ We have defined a single UI-element that only shows the string. The widget is a 
 #### JSON config file
 
 All examples in this guide use YAML as a markup language for config files. But notice that you can
-also use JSON. There are many JSON libraries for many languages. With them we can create our config-file with code. 
-It can greatly simplify the process. 
+also use JSON. There are many JSON libraries for many languages. With them we can create our config-file with code.
+It can greatly simplify the process.
 
 There is a Haskell library that allows you to write the config files easily. Every widget and unit of config
-file is encoded as a normal value. There are plans to make the config-file generators for python or scala. 
+file is encoded as a normal value. There are plans to make the config-file generators for python or scala.
 
 Yo can find the source vcode for generators in the directory `json-gen`.
 
-#### Simple layout 
+#### Simple layout
 
 Let's go to the more interesting widgets. We can stack many widgets horizontally or vertically with `hor` and `ver`.
 Let's create some knobs:
@@ -123,12 +123,12 @@ main:
       size: [200, 100]
       content:
         hor:
-          - dial: 
+          - dial:
               init: 0.25
               color: "orange"
           - dial:
               init: 0.5
-              color: "blue"              
+              color: "blue"
           - dial:
               init: 0.75
               color: "olive"
@@ -162,7 +162,7 @@ msg:
 We can specify the message with attribute `send`:
 
 ~~~yaml
-- dial: 
+- dial:
     init: 0.25
     color: "orange"
   send:
@@ -175,18 +175,18 @@ We can specify the message with attribute `send`:
 Notice that the field `send` is on the same level as dial` (not inside the send's fields).
 
 The special syntax `$int` means read the value from the N's input of the current value of the widget.
-In this example we read a single value of the knob. 
+In this example we read a single value of the knob.
 
 The OSC-servers listen on specific ports. In the app the ports are specified by names. We assign the
-actual port to the name in the command line argument `-c`  or `--clients`: 
+actual port to the name in the command line argument `-c`  or `--clients`:
 
 ~~~
 run --verbose  -i hello.yaml -c jack=7654
 ~~~
 
-Also we specify the flag `--verbose` to see the prints of the sent messages. 
+Also we specify the flag `--verbose` to see the prints of the sent messages.
 
-Notice that when we send messages we use the sign `-` before the `msg`-tag. 
+Notice that when we send messages we use the sign `-` before the `msg`-tag.
 It means that we can send multiple messages with the same click or switch.
 This can be useful for complex updates of the setup. When for instance
 tack changes and we want to preload all the samples and change the names of
@@ -206,7 +206,7 @@ main:
           - hor:
               - label:
                   text: cps
-              - hfader: 
+              - hfader:
                   init: 0.25
                   color: "orange"
                 send:
@@ -219,7 +219,7 @@ main:
                   text: amp
               - hfader:
                   init: 0.5
-                  color: "blue" 
+                  color: "blue"
                 send:
                   - msg:
                       client: synth
@@ -227,7 +227,7 @@ main:
                       args:   [$0]
 ~~~
 
-We control two parameters amplitude and frequency of our synthesizer. 
+We control two parameters amplitude and frequency of our synthesizer.
 
 ### Buttons and toggles
 
@@ -252,7 +252,7 @@ main:
           - toggle:
               init: false
               color: green
-            send: 
+            send:
               - msg: { client: "synth", path: "/mute", args: [$0] }
 ~~~
 
@@ -264,7 +264,7 @@ the toggle messages with special syntax:
           - toggle:
               init: false
               color: green
-            send: 
+            send:
               case true:
                   - msg: { client: "synth", path: "/play", args: [] }
               case false:
@@ -319,8 +319,8 @@ We can send the OSC-message to our app to update the value of `amp` fader:
 { path: "/amp", args: [0.5] }
 ~~~
 
-This will update the visual widget and send all the messages for the widget. 
-There is a hack if we want only to update the visual representation but not send the 
+This will update the visual widget and send all the messages for the widget.
+There is a hack if we want only to update the visual representation but not send the
 messages of the widget. We should prefix with "/cold":
 
 ~~~yaml
@@ -421,15 +421,15 @@ at the same level as `page`-tag:
 
 * tab specific keys. They are active only when the page is selected:
 
-    ~~~yaml    
+    ~~~yaml
     main:
-        - window: 
+        - window:
             content:
                 tabs:
                     - page: { ... }
                       keys: [ ... ]
                     - page: { ... }
-                      keys: [ ... ]               
+                      keys: [ ... ]
     ~~~
 
 
@@ -452,7 +452,7 @@ keys:
 We write the name of the hot-key in the `key` field and we specify
 the message list in  the same way as we did it with widgets. We use the `send`-tag.
 
-If want to use the key pressed with modifier such as **Control** or **Shift** we 
+If want to use the key pressed with modifier such as **Control** or **Shift** we
 should list all the modifiers in the list in the `key`-tag:
 
 ~~~yaml
@@ -467,7 +467,7 @@ keys:
 All keys are follow their latin names, there are also special keys like:
 
 ~~~yaml
-ctrl, alt, shift, windows, 
+ctrl, alt, shift, windows,
 delete, insert, home, end
 up, down, left, right, page-up, page-down
 f1, f2, f3, ...
@@ -477,7 +477,7 @@ f1, f2, f3, ...
 #### Changing the tabs with hot keys
 
 Notice that the tab can also produce the OSC-message. Every tab change is
-equivalent to setting the integer state of the tab to the given integer. 
+equivalent to setting the integer state of the tab to the given integer.
 
 So we can ive the tab-widget a name (`id`) and send the messages to it like this:
 
@@ -502,23 +502,23 @@ init-send: [ message list ]
 ### Lock the exit
 
 If we close any of the window all other widows are going to shut down.
-It can be undesirable to shut down the windows at the single click. 
-It can happen by mistake in the mid of the concert and we can lost 
+It can be undesirable to shut down the windows at the single click.
+It can happen by mistake in the mid of the concert and we can lost
 all the visual representation of the scene. to prevent this from happening
-we can use the flag: `--lock-on-exit`. 
+we can use the flag: `--lock-on-exit`.
 
 It will require to type the word `exit` to close the app.
 
 ### Colors
 
-Here is the list of color names: 
+Here is the list of color names:
 
 ~~~
-navy, blue, aqua, teal, olive, green, lime, yellow, 
+navy, blue, aqua, teal, olive, green, lime, yellow,
 orange, red, maroon, fuchsia, purple, black, gray, silver, white, any.
 ~~~
 
-`any` -- means any color at random. 
+`any` -- means any color at random.
 
 ### Widgets
 
@@ -551,7 +551,7 @@ ver:
 tabs:
     - page:
         title: "page A"
-        content: { ... }            
+        content: { ... }
     - page:
         title: "page B"
         content: { ... }
@@ -582,7 +582,7 @@ space: 35
 With `label` we can show a static text:
 
 ~~~yaml
-label: 
+label:
     text: "hi"
     color: black
 ~~~
@@ -643,7 +643,7 @@ multi-toggle:
 
 #### A float producers
 
-We can produce a single float value with `dial`, `vfader`, `hfader`. 
+We can produce a single float value with `dial`, `vfader`, `hfader`.
 They send similar OSC-messages but the visual representation is different.
 The example is for `dial`'s but we can substitute the tag with `vfader` and `hfader`
 to produce vertical and horizontal faders:
@@ -652,7 +652,7 @@ to produce vertical and horizontal faders:
 dial:
     color: green
     init:  0.5
-    range: [0, 1]  
+    range: [0, 1]
 ~~~
 
 All fields are optional. The default range is 0 to 1. Some synthesizers expect
@@ -662,7 +662,7 @@ the value to be in midi range 1 to 127. We can alter the range like this:
 dial:
     color: green
     init:  70
-    range: [1, 127]  
+    range: [1, 127]
 ~~~
 
 #### An integer producers
@@ -740,7 +740,7 @@ With `text-input` we can send strings:
 text-input:
     init: name
     color: blue
-    text-length: 7  
+    text-length: 7
 ~~~
 
 #### Send file names
@@ -751,7 +751,7 @@ We can select files.
 text-input:
     init: name
     color: blue
-    text: "Get file:" 
+    text: "Get file:"
 ~~~
 
 #### XY-pads
@@ -786,7 +786,7 @@ We can reference the values from the body of OSC-message with references: `$0`, 
 
 #### Tabbed radio buttons
 
-There is a special widget to pack many options. 
+There is a special widget to pack many options.
 
 ~~~yaml
 double-check:
@@ -799,9 +799,9 @@ double-check:
     allow-deselect: bool
 ~~~
 
-It stacks several radio-button groups together with tabs. 
+It stacks several radio-button groups together with tabs.
 So there are two radio button groups, one to select the sub-groups
-and another one to select the items. 
+and another one to select the items.
 
 The orient is a triple of booleans. They define the representation
 of the widget. The three booleans are:
@@ -819,7 +819,7 @@ We can select the values with OSC-messages if we send:
 ~~~yaml
 mag: { client: self, path: /id-of-unit/double-check/1, args: [int] }  # to update first group
 
-mag: { client: self, path: /id-of-unit/double-check/2, args: [int] }  #           second  
+mag: { client: self, path: /id-of-unit/double-check/2, args: [int] }  #           second
 ~~~
 
 #### Advanced OSC-messages
@@ -829,7 +829,7 @@ mag: { client: self, path: /id-of-unit/double-check/2, args: [int] }  #         
 We can reference the values of the widget-state with references `$N`, where `N` is some integer number.
 
 ~~~
-msg: 
+msg:
     client: name
     path:   /some/path
     args:   [$0]
@@ -838,7 +838,7 @@ msg:
 ##### Send message on deselect
 
 Some widgets represent selection from multiple choices. We can send messages
-not only on selection but also on de-selection.  With selection we prefix 
+not only on selection but also on de-selection.  With selection we prefix
 the choice number with `case`. For de-selection we can use `case-off`:
 
 ~~~
@@ -847,13 +847,13 @@ double-check:
     orient: [true, true, false]
     texts: [ ... ]
     id: tracks
-send:     
-    case 0 0:  
+send:
+    case 0 0:
         - msg: { ... }
     case-off 0 0:
         - msg: { ... we can close the resources for this choice ...  }
 
-    case 0 1:  
+    case 0 1:
         - msg: { ... }
     case-off 0 1:
         - msg: { ... }
@@ -870,11 +870,41 @@ We can send the messages to the app itself to change the look and feel or to tri
 We can use it like this:
 
 ~~~
-msg: 
+msg:
     client: self
     path: /some/path
     args: [ ... ]
 ~~~
+
+##### The system client
+
+We can execute some command by sending the message to the `system` client.
+The address contains the command to execute (should not block!!).
+
+~~~
+msg:
+    client: system
+    path: "run-script args"
+    args: []
+~~~
+
+##### Init and terminate messages
+
+We can execute a sequence of messages on start up and on terminate:
+
+~~~
+main:
+  app-description
+init-send:
+  - msg1
+  - msg2
+terminate-send:
+  - msg1
+  - msg2
+~~~
+
+
+
 
 
 
