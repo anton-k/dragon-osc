@@ -131,12 +131,12 @@ class UiCompoundWidgets extends FunSuite {
 
     test("window") {
         check("window: { title: Supper App, content: {dial: {}} }", window, Window("Supper App", None, p, emptyKeys))
-        check("window: { title: Supper App, size: [230, 500], content: {dial: {}} }", window, Window("Supper App", Some((230, 500)), p, emptyKeys))
+        check("window: { title: Supper App, size: [230, 500], content: {dial: {}} }", window, Window("Supper App", Some((0, 0, 230, 500)), p, emptyKeys))
     }
 
     val w = Window(Defaults.string, None, emptyUi, emptyKeys)
     test("root") {
-        check[Root]("{ main: [window: {}, window: {}] }", root, Root(List(w,w), emptyKeys, Nil))
+        check[Root]("{ main: [window: {}, window: {}] }", root, Root(List(w,w), emptyKeys, Nil, Nil))
     }
 }
 

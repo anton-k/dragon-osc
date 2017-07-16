@@ -82,6 +82,7 @@ object Attr {
     def path = attr[String](Names.path, readString, Defaults.path)
     def title = attr[String](Names.title, readString, Defaults.string)
     def size = attr[Option[(Int,Int)]](Names.size, readSize, None)
+    def winSize = attr[Option[(Int,Int,Int,Int)]](Names.size, readWinSize, None)
     def size1 = attr[Int](Names.size, readInt, Defaults.size1)
     def allowDeselect = attr[Boolean](Names.allowDeselect, readBoolean, Defaults.allowDeselect)
     def texts = attr[List[String]](Names.texts, readStringList, Nil)
@@ -174,6 +175,12 @@ object Attr {
     }
 
     def readSize(obj: Lang) = readRangeInt(obj).map(x => Some(x))
+
+    def readWinSize(obj: Lang) = (obj match {
+        case ListSym(List(PrimSym(PrimInt(width)), PrimSym(PrimInt(height)))) => Some((0, 0, width, height))
+        case ListSym(List(PrimSym(PrimInt(x)), PrimSym(PrimInt(y)), PrimSym(PrimInt(width)), PrimSym(PrimInt(height)))) => Some((x, y, width, height))
+        case _ => None
+    }).map(x => Some(x))
 
     def readOrient(obj: Lang) = obj match {
         case ListSym(List(PrimSym(PrimBoolean(isFirst)), PrimSym(PrimBoolean(isFirstHor)), PrimSym(PrimBoolean(isSecondHor))))  => Some(Orient(isFirst, isFirstHor, isSecondHor))

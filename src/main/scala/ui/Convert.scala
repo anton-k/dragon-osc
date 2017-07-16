@@ -5,6 +5,7 @@ import scala.swing.audio.ui._
 import scala.audio.osc._
 import scala.swing.event._
 import java.awt.event._
+import java.awt.Point
 
 import dragon.osc.state._
 import dragon.osc.color._
@@ -28,7 +29,7 @@ case class Root(windows: List[Window]) {
     def show(st: St, args: Args, onTerminate: => Unit) = windows.foreach(_.show(args, st, {onTerminate;  st.close}))
 }
 
-case class Window(title: String, size: Option[(Int,Int)], content: Component, hotKeys: WindowKeys) {
+case class Window(title: String, size: Option[(Int,Int,Int,Int)], content: Component, hotKeys: WindowKeys) {
     def show(args: Args, st: St, onClose: => Unit) = {
         val window = this
         val ui = new MainFrame { self =>
@@ -53,7 +54,8 @@ case class Window(title: String, size: Option[(Int,Int)], content: Component, ho
                 requestFocus
             }
 
-            window.size.foreach { case (width, height) =>
+            window.size.foreach { case (xpos, ypos, width, height) =>
+                self.location = new Point(xpos, ypos)
                 self.minimumSize = new Dimension(width, height)
             }
 

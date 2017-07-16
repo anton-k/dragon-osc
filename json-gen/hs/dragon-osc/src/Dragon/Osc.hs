@@ -21,17 +21,19 @@ import Data.Maybe
 import qualified Data.ByteString.Lazy as LB
 
 type Size = (Int, Int)
+type WinSize = (Int, Int, Int, Int)
 type Float2 = (Float, Float)
 type Int2 = (Int, Int)
 
 data Root = Root
     { rootWindows :: [Window]
     , rootKeys    :: Keys
-    , rootInitOsc :: [Msg] }
+    , rootInitOsc :: [Msg]
+    , rootTerminateOsc :: [Msg] }
 
 data Window = Window
     { windowTitle   :: String
-    , windowSize    :: Maybe Size
+    , windowSize    :: Maybe WinSize
     , windowContent :: Ui
     , windowKeys    :: Keys }
 
@@ -163,10 +165,10 @@ multiUi (xSize, ySize) unit = ui $ Ver $ fmap row $ take ySize [0, xSize .. ]
 -- toJson
 
 instance ToJSON Root where
-    toJSON (Root windows keys initSend) = object ["main" .= windows, "keys" .= keys, "init-send" .= initSend]
+    toJSON (Root windows keys initSend terminateSend) = object ["main" .= windows, "keys" .= keys, "init-send" .= initSend, "terminate-send" .= terminateSend]
 
 instance ToJSON Window where
-    toJSON (Window title size content keys) = "window" =: (object $ catMaybes [Just $ "title" .= title, fmap (\sz -> "size" .=  [fst sz, snd sz]) size, Just $ "content" .= content, Just $ "keys" .= keys])
+    toJSON (Window title size content keys) = "window" =: (object $ catMaybes [Just $ "title" .= title, fmap (\(xpos, ypos, width, height) -> "size" .=  [xpos, ypos, width, height]) size, Just $ "content" .= content, Just $ "keys" .= keys])
 
 instance ToJSON Orient where
     toJSON (Orient isFirst isFirstHor isSecondHor) = toJSON $ [isFirst, isFirstHor, isSecondHor]
